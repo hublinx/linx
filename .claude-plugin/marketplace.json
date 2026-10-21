@@ -11,7 +11,7 @@
             "name": "linx",
             "source": "./",
             "description": "AI-agent SDLC for any repo: spec → plan → execute → verify → review → ship, resumable across sessions, machines and tools.",
-            "version": "0.2.0",
+            "version": "0.3.0",
             "license": "MIT"
         }
     ]

@@ -21,10 +21,11 @@ export function isSensitive(rel, patterns = []) {
     });
 }
 
-export function formatCommand(format, file) {
+// {file} = absolute path, {relfile} = repo-relative path (for tools such as `dotnet format --include`).
+export function formatCommand(format, file, rel = file) {
     if (!format?.command) return null;
     if (format.extensions && !format.extensions.includes(extname(file))) return null;
-    return format.command.replaceAll('{file}', `"${file}"`);
+    return format.command.replaceAll('{file}', `"${file}"`).replaceAll('{relfile}', `"${rel}"`);
 }
 
 function isShadowed(root, self, name) {
@@ -52,7 +53,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
     const rel = file ? relPath(root, file) : null;
     // Files outside the repo (e.g. a shared work folder) are not governed by this repo's rules.
     if (!rel) process.exit(0);
-    const cmd = formatCommand(config.format, resolve(root, file));
+    const cmd = formatCommand(config.format, resolve(root, file), rel);
     if (cmd && existsSync(resolve(root, file))) {
         spawnSync(cmd, { cwd: root, shell: true, stdio: 'ignore', timeout: 30_000 });
     }

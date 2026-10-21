@@ -56,6 +56,7 @@ test('post-edit helpers', () => {
     assert.equal(formatCommand({ command: 'fmt {file}', extensions: ['.ts'] }, 'a.ts'), 'fmt "a.ts"');
     assert.equal(formatCommand({ command: 'fmt {file}', extensions: ['.ts'] }, 'a.md'), null);
     assert.equal(formatCommand(null, 'a.ts'), null);
+    assert.equal(formatCommand({ command: 'f --include {relfile}' }, '/r/src/A.cs', 'src/A.cs'), 'f --include "src/A.cs"');
 });
 
 test('post-edit warns on sensitive files with exit 2', () => {

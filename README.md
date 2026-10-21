@@ -71,6 +71,40 @@ The `skills/` folder follows the standard Agent Skills layout, so skill installe
 Every key in `.linx/config.json` is documented in [`skills/linx-start/config.md`](skills/linx-start/config.md).
 Editors get autocompletion from [`schema/config.schema.json`](schema/config.schema.json).
 
+## Supported stacks
+
+The workflow (skills, work state, review, GitHub/GitLab) works with **any** language: the agent only runs the
+commands in `.linx/config.json`. What `init` sets up for you depends on the stack:
+
+| Stack | Detected from | Verify steps | Baseline (only new errors fail) | Format after edit | `--ci` toolchain |
+|---|---|---|---|---|---|
+| **.NET** (C#, F#, VB) | root `*.sln`/`*.slnx`, root project, or the only `*.csproj`/`*.fsproj`/`*.vbproj` | `dotnet build`, `dotnet format --verify-no-changes`, `dotnet test` | build warnings/errors and format issues (`dotnet`) | `dotnet format whitespace --folder` | `actions/setup-dotnet` · `mcr.microsoft.com/dotnet/sdk` |
+| **Node / TypeScript** | `package.json` | `tsc`, `eslint`, `test`/`build` scripts | `tsc`, `eslint-json` | prettier | `actions/setup-node` · `node:<version>` |
+| **Python** | `pyproject.toml`, `requirements*.txt` | ruff, mypy, pytest | `ruff-json` | `ruff format` | TODO in generated file |
+| **Go** | `go.mod` | `go vet`, `go test`, `go build` | — | `gofmt` | TODO in generated file |
+| **Rust** | `Cargo.toml` | `cargo clippy`, `cargo test` | — | `rustfmt` | TODO in generated file |
+| **Java** | `pom.xml`, `gradlew` | `mvn verify`, `./gradlew check` | — | — | TODO in generated file |
+| Anything else | — | write them yourself | — | set `format` yourself | TODO in generated file |
+
+.NET details:
+- **SDK version:** taken from `global.json`, else the highest `<TargetFramework(s)>` in the projects, else `8.0`.
+- **Build:** runs with `--no-incremental`, so every run reports all warnings. An incremental build skips
+  up-to-date projects and would undercount.
+- **Legacy code:** existing warnings and format issues go into the baseline
+  (`node .linx/verify.mjs --update-baseline`); from then on, only new ones fail the gate.
+- **Several projects but no solution:** no steps are generated; list them yourself in `.linx/config.json`.
+- **GitLab CI:** the SDK image installs Node with `apt` before running the verify gate.
+
+Other stacks: write the steps yourself, for example Ruby:
+
+```json
+"verify": [
+  { "name": "lint", "cmd": "bundle exec rubocop" },
+  { "name": "test", "cmd": "bundle exec rspec" }
+],
+"format": { "command": "bundle exec rubocop -a {file}", "extensions": [".rb"] }
+```
+
 ## The skills
 
 | Skill | When |

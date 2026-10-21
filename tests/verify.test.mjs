@@ -68,3 +68,37 @@ test('plain step uses the exit code', () => {
     assert.equal(fail.ok, false);
     assert.match(fail.detail, /42/);
 });
+
+test('dotnet parser counts warnings and errors per file, once per distinct line', () => {
+    const cwd = process.cwd();
+    const f = join(cwd, 'src', 'Api', 'Program.cs');
+    const out = [
+        `  ${f}(12,5): warning CS8618: Non-nullable property 'Name' [${join(cwd, 'src', 'Api', 'Api.csproj')}]`,
+        `  ${f}(12,5): warning CS8618: Non-nullable property 'Name' [${join(cwd, 'src', 'Api', 'Api.csproj')}]`,
+        `${f}(20,1): error WHITESPACE: Fix whitespace formatting. [x.csproj]`,
+        `${join(cwd, 'src', 'Api', 'Api.csproj')} : error NU1101: Unable to find package Foo.`,
+        'MSBUILD : error MSB1009: Project file does not exist.',
+        'Build succeeded.',
+        '    2 Warning(s)',
+    ].join('\r\n');
+    assert.deepEqual(parsers.dotnet(out, cwd), {
+        'src/Api/Program.cs': 2,
+        'src/Api/Api.csproj': 1,
+        '<global>': 1,
+    });
+    assert.deepEqual(parsers.dotnet('Build succeeded.\n    0 Warning(s)\n    0 Error(s)', cwd), {});
+});
+
+test('dotnet baseline reads diagnostics from stderr too', () => {
+    const { dir, cleanup } = tempProject();
+    try {
+        const step = { name: 'format', cmd: 'x', baseline: 'dotnet' };
+        const r = runStep(step, dir, {
+            run: () => ({ stdout: '', stderr: 'src/A.cs(1,1): error WHITESPACE: Fix whitespace formatting.', status: 2 }),
+        });
+        assert.equal(r.ok, false);
+        assert.match(r.detail, /src\/A\.cs: 0 → 1/);
+    } finally {
+        cleanup();
+    }
+});

@@ -69,3 +69,39 @@ test('tools and forge', () => {
         cleanup();
     }
 });
+
+test('.NET: solution at the root wins; version from TargetFramework; dotnet format on edit', async () => {
+    const { detectDotnet } = await import('../lib/detect.mjs');
+    const { dir, cleanup } = tempProject({
+        'My App.sln': '',
+        'src/Api/Api.csproj': '<Project><PropertyGroup><TargetFramework>net8.0</TargetFramework></PropertyGroup></Project>',
+        'tests/Api.Tests/Api.Tests.csproj': '<TargetFrameworks>net6.0;net9.0</TargetFrameworks>',
+        'package.json': { scripts: { build: 'vite build' } },
+    });
+    try {
+        assert.deepEqual(detectDotnet(dir), { target: 'My App.sln', version: '9.0', globalJson: false });
+        const steps = detectVerify(dir);
+        assert.deepEqual(names(steps), ['build', 'format', 'test']);
+        assert.equal(steps[0].cmd, 'dotnet build "My App.sln" --nologo --no-incremental -clp:NoSummary');
+        assert.equal(steps[0].baseline, 'dotnet');
+        assert.equal(steps[1].cmd, 'dotnet format "My App.sln" --verify-no-changes');
+        assert.equal(steps[1].baseline, 'dotnet');
+        assert.match(detectFormat(dir).command, /dotnet format whitespace \. --folder --include \{relfile\}/);
+    } finally {
+        cleanup();
+    }
+});
+
+test('.NET: single nested project; global.json version; several projects without solution → no steps', async () => {
+    const { detectDotnet } = await import('../lib/detect.mjs');
+    const one = tempProject({ 'global.json': { sdk: { version: '10.0.100' } }, 'src/App/App.csproj': '' });
+    const many = tempProject({ 'src/A/A.csproj': '', 'src/B/B.csproj': '', 'src/A/bin/X.csproj': '' });
+    try {
+        assert.deepEqual(detectDotnet(one.dir), { target: 'src/App/App.csproj', version: '10.0', globalJson: true });
+        assert.equal(detectDotnet(many.dir).target, null);
+        assert.deepEqual(detectVerify(many.dir), []);
+    } finally {
+        one.cleanup();
+        many.cleanup();
+    }
+});

@@ -14,7 +14,7 @@ Created by `linx init` (detected values), owned by the project — edit freely. 
 | `verify` | detected | Steps for `.linx/verify.mjs` (see below). |
 | `review.checklist` | `[]` | Extra project-specific review items, one sentence each. |
 | `sensitivePaths` | `.env*`, key files | Regexes on repo-relative `/` paths. Editing a match makes the agent confirm and record why. |
-| `format` | detected | `{ "command": "... {file}", "extensions": [".ts"] }` run after each edit (Claude Code hook). `null` = off. |
+| `format` | detected | `{ "command": "... {file}", "extensions": [".ts"] }` run after each edit (Claude Code hook). `{file}` = absolute path, `{relfile}` = repo-relative path. `null` = off. |
 | `repos` | — | Multi-repo: `[{ "name": "api", "path": "../api" }]` — sibling repos a feature may touch. |
 
 ## Default `escalation`
@@ -33,6 +33,7 @@ Write project-specific ones as plain sentences, e.g. "anything under `src/billin
 ```
 - `name` — used by `--only=` / `--skip=`.
 - `cmd` — shell command run from the repo root; exit code 0 = pass.
-- `baseline` (optional) — `tsc`, `eslint-json` or `ruff-json`. Errors are counted per file and only an increase
+- `baseline` (optional) — `tsc`, `eslint-json`, `ruff-json` or `dotnet` (MSBuild warnings/errors from
+  `dotnet build`, and `dotnet format --verify-no-changes` issues). Errors are counted per file and only an increase
   over `.linx/baseline/<name>.json` fails. Lets legacy code adopt the gate without fixing everything first.
 - `default: false` (optional) — skipped unless named in `--only=` (slow suites, e2e).

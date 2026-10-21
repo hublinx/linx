@@ -43,6 +43,24 @@ export const parsers = {
         for (const r of data) if (r.errorCount > 0) counts[posix(relative(cwd, r.filePath))] = r.errorCount;
         return counts;
     },
+    // MSBuild-style diagnostics from `dotnet build` and `dotnet format --verify-no-changes`:
+    //   C:\src\File.cs(12,5): warning CS8618: ... [C:\src\App.csproj]
+    //   C:\src\App.csproj : error NU1101: ...      MSBUILD : error MSB1009: ...
+    dotnet(out, cwd) {
+        const counts = {};
+        const seen = new Set();
+        for (const raw of out.split(/\r?\n/)) {
+            const line = raw.trim();
+            const m = line.match(/^(.*?)(?:\(\d+(?:,\d+)*\))?\s*:\s*(?:warning|error)\s+[A-Za-z]+\d*\s*:/);
+            // MSBuild repeats some diagnostics verbatim; count each distinct line once.
+            if (!m || seen.has(line)) continue;
+            seen.add(line);
+            const loc = m[1].trim();
+            const file = !loc || /^(MSBUILD|CSC|EXEC)$/i.test(loc) ? '<global>' : posix(relative(cwd, resolve(cwd, loc)));
+            counts[file] = (counts[file] ?? 0) + 1;
+        }
+        return counts;
+    },
     'ruff-json'(out, cwd) {
         const data = jsonArray(out);
         if (!data) return null;
@@ -73,7 +91,8 @@ export function runStep(step, cwd, { updateBaseline = false, run = spawnSync } =
 
     const parser = parsers[step.baseline];
     if (!parser) return { ok: false, secs, detail: `Unknown baseline parser "${step.baseline}"` };
-    let counts = parser(r.stdout ?? '', cwd);
+    // dotnet tools may write diagnostics to either stream; JSON parsers need clean stdout.
+    let counts = parser(step.baseline === 'dotnet' ? all : (r.stdout ?? ''), cwd);
     if (counts && Object.keys(counts).length === 0 && r.status !== 0) counts = null;
     if (!counts) return { ok: false, secs, detail: `Could not read ${step.baseline} output (tool crashed?)\n${tail(all)}` };
 

@@ -115,3 +115,22 @@ test('init --ci on a GitHub project writes workflow, PR template and forge bridg
         cleanup();
     }
 });
+
+test('.NET CI: setup-dotnet on GitHub, SDK image + Node on GitLab', () => {
+    const withGlobal = tempProject({ 'App.sln': '', 'global.json': { sdk: { version: '8.0.400' } }, 'src/App/App.csproj': '' });
+    const plain = tempProject({ 'App.csproj': '<TargetFramework>net9.0</TargetFramework>' });
+    try {
+        const gh = githubWorkflow(withGlobal.dir, { baseBranch: 'main' }, '1.0.0');
+        assert.match(gh, /actions\/setup-dotnet@v4\n {8}with:\n {10}global-json-file: global\.json\n {6}- run: dotnet restore App\.sln/);
+        assert.ok(!gh.includes('setup-node'));
+        assert.match(githubWorkflow(plain.dir, {}, '1.0.0'), /dotnet-version: '9\.0\.x'/);
+        const gl = gitlabJob(withGlobal.dir, { baseBranch: 'main' }, '1.0.0');
+        assert.match(gl, /image: mcr\.microsoft\.com\/dotnet\/sdk:8\.0\n/);
+        assert.match(gl, /apt-get install -y -qq nodejs npm/);
+        assert.match(gl, /- dotnet restore App\.sln\n {4}- node \.linx\/verify\.mjs/);
+        assert.match(gl, /NUGET_PACKAGES/);
+    } finally {
+        withGlobal.cleanup();
+        plain.cleanup();
+    }
+});

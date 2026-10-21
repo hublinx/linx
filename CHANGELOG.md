@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.0 — 2026-10-21
+- .NET support: detects a root `*.sln`/`*.slnx`, a root project, or the only `*.csproj`/`*.fsproj`/`*.vbproj`;
+  generates `dotnet build` (`--no-incremental`), `dotnet format --verify-no-changes` and `dotnet test` steps.
+- New `dotnet` baseline parser for MSBuild diagnostics: legacy warnings and format issues are baselined, so only
+  new ones fail the gate.
+- Format after edit with `dotnet format whitespace --folder`; the new `{relfile}` placeholder passes the
+  repo-relative path.
+- `--ci` for .NET: `actions/setup-dotnet` (from `global.json` or the target framework) on GitHub,
+  `mcr.microsoft.com/dotnet/sdk:<version>` on GitLab.
+- README: "Supported stacks" table.
+
 ## 0.2.0 — 2026-10-21
 - GitHub & GitLab integration through `.linx/forge.mjs` (wraps `gh` / `glab`; JSON output): `info`, `issue`,
   `pr-create`, `pr-status`, `pr-comments`, `ci-status --wait`, `ci-log`.
