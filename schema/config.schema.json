@@ -1,6 +1,6 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://raw.githubusercontent.com/OWNER/linx/main/schema/config.schema.json",
+    "$id": "https://raw.githubusercontent.com/hublinx/linx/main/schema/config.schema.json",
     "title": "linx project config (.linx/config.json)",
     "type": "object",
     "properties": {

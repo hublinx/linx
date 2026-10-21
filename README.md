@@ -26,7 +26,7 @@ Pick one. All of them work per project. Settings live in the project's `.linx/co
 ### 1. Claude Code plugin
 
 ```text
-/plugin marketplace add OWNER/linx
+/plugin marketplace add hublinx/linx
 /plugin install linx@linx
 ```
 
@@ -37,8 +37,8 @@ Then, in each project: *"use linx-init"* (or `/linx:linx-init`). The agent previ
 
 ```bash
 cd your-project
-npx -y github:OWNER/linx init                 # Claude Code + whatever the repo already uses
-npx -y github:OWNER/linx init --tools=all     # claude, cursor, agents (.agents/skills: Codex & others)
+npx -y github:hublinx/linx init                 # Claude Code + whatever the repo already uses
+npx -y github:hublinx/linx init --tools=all     # claude, cursor, agents (.agents/skills: Codex & others)
 ```
 
 The CLI copies the skills into `.claude/skills`, `.cursor/skills` and/or `.agents/skills`, so everyone who clones
@@ -47,7 +47,7 @@ the repo gets the same workflow without installing anything.
 ### 3. Skills only
 
 The `skills/` folder follows the standard Agent Skills layout, so skill installers such as
-`npx skills add OWNER/linx` work too. Run `linx init` afterwards for the config, verify gate and AGENTS.md section.
+`npx skills add hublinx/linx` work too. Run `linx init` afterwards for the config, verify gate and AGENTS.md section.
 
 ## What `init` sets up
 
@@ -117,7 +117,7 @@ node .linx/verify.mjs --update-baseline     # record current tsc/eslint/ruff err
 ```yaml
 # GitHub Actions
 - run: node .linx/verify.mjs --skip=build
-- run: npx -y github:OWNER/linx check     # fails if linx-managed files were edited by hand
+- run: npx -y github:hublinx/linx check     # fails if linx-managed files were edited by hand
 ```
 
 ```yaml
@@ -125,7 +125,7 @@ node .linx/verify.mjs --update-baseline     # record current tsc/eslint/ruff err
 verify:
   script:
     - node .linx/verify.mjs --skip=build
-    - npx -y github:OWNER/linx check
+    - npx -y github:hublinx/linx check
 ```
 
 Run CI on the same Node version as your production image, and create baselines from an LF working copy (the
@@ -134,8 +134,8 @@ same line endings CI sees).
 ## Updating
 
 ```bash
-npx -y github:OWNER/linx update        # refresh managed files; your config and AGENTS.md text stay
-npx -y github:OWNER/linx update --force  # also overwrite managed files you edited by hand
+npx -y github:hublinx/linx update        # refresh managed files; your config and AGENTS.md text stay
+npx -y github:hublinx/linx update --force  # also overwrite managed files you edited by hand
 ```
 
 Plugin users: `/plugin marketplace update linx`, then run `update` for the project files.

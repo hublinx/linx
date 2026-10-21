@@ -1,7 +1,7 @@
 {
     "name": "linx",
     "owner": {
-        "name": "OWNER"
+        "name": "hublinx"
     },
     "metadata": {
         "description": "linx — an AI-agent SDLC for any repository."

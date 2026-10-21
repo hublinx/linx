@@ -27,9 +27,9 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/OWNER/linx.git"
+        "url": "git+https://github.com/hublinx/linx.git"
     },
-    "homepage": "https://github.com/OWNER/linx#readme",
+    "homepage": "https://github.com/hublinx/linx#readme",
     "license": "MIT",
     "keywords": [
         "claude-code",

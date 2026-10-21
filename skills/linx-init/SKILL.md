@@ -5,7 +5,7 @@ description: Use when setting up linx in a project, or updating its installed fi
 # linx-init
 
 1. **Find the CLI.** Plugin or repo layout: `node "<this skill's base directory>/../../bin/cli.mjs"`. Not there
-   (skills were copied into the project) → `npx -y github:OWNER/linx`.
+   (skills were copied into the project) → `npx -y github:hublinx/linx`.
 2. **Preview:** `<cli> init --dry-run`. Add `--plugin` when these skills come from the Claude Code plugin (the
    plugin already provides skills, agents and hooks for Claude). Add `--tools=cursor,agents` if the team also uses
    Cursor or Codex. Show the user the summary; continue once they agree.
@@ -19,7 +19,7 @@ description: Use when setting up linx in a project, or updating its installed fi
 5. **AGENTS.md project section** (above the managed linx block): stack, layout, commands, conventions,
    "stop and ask" rules — short, from what you read in the repo. The user confirms.
 6. **Optional:** `linx-learn` for the 1–2 core domains. CI: run `node .linx/verify.mjs` and
-   `npx -y github:OWNER/linx check` on every PR/MR.
+   `npx -y github:hublinx/linx check` on every PR/MR.
 7. Commit `chore: set up linx`, push, open the PR/MR (`linx-ship` step 4).
 
 **Update to a newer version:** `<cli> update` — keeps the config, refreshes managed files, and skips any managed
