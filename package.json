@@ -1,0 +1,44 @@
+{
+    "name": "linx-sdlc",
+    "version": "0.1.0",
+    "description": "An AI-agent SDLC for any repo: spec → plan → execute → verify → review → ship, with resumable work state, a baseline-aware verify gate and project knowledge. Works with Claude Code, Cursor and Codex.",
+    "type": "module",
+    "bin": {
+        "linx": "bin/cli.mjs"
+    },
+    "files": [
+        ".claude-plugin",
+        "agents",
+        "bin",
+        "hooks",
+        "lib",
+        "runtime",
+        "schema",
+        "skills",
+        "templates",
+        "LICENSE",
+        "README.md"
+    ],
+    "engines": {
+        "node": ">=20"
+    },
+    "scripts": {
+        "test": "node --test"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/OWNER/linx.git"
+    },
+    "homepage": "https://github.com/OWNER/linx#readme",
+    "license": "MIT",
+    "keywords": [
+        "claude-code",
+        "claude-code-plugin",
+        "agent-skills",
+        "cursor",
+        "codex",
+        "sdlc",
+        "ai-agents",
+        "workflow"
+    ]
+}

@@ -1,0 +1,12 @@
+{
+    "name": "linx",
+    "version": "0.1.0",
+    "description": "AI-agent SDLC for any repo: spec → plan → execute → verify → review → ship, resumable across sessions, machines and tools.",
+    "author": {
+        "name": "OWNER"
+    },
+    "homepage": "https://github.com/OWNER/linx",
+    "repository": "https://github.com/OWNER/linx",
+    "license": "MIT",
+    "keywords": ["sdlc", "workflow", "tdd", "code-review", "planning"]
+}

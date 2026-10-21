@@ -1,0 +1,18 @@
+{
+    "name": "linx",
+    "owner": {
+        "name": "OWNER"
+    },
+    "metadata": {
+        "description": "linx — an AI-agent SDLC for any repository."
+    },
+    "plugins": [
+        {
+            "name": "linx",
+            "source": "./",
+            "description": "AI-agent SDLC for any repo: spec → plan → execute → verify → review → ship, resumable across sessions, machines and tools.",
+            "version": "0.1.0",
+            "license": "MIT"
+        }
+    ]
+}

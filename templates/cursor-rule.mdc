@@ -1,0 +1,10 @@
+---
+description: linx SDLC — required workflow for every task in this repo
+alwaysApply: true
+---
+This project follows the linx workflow (see the "Development workflow (linx)" section of AGENTS.md).
+Start every task — feature, bug, small change or code question — with the `linx-start` skill. If a skill is not
+offered automatically, read `.cursor/skills/<name>/SKILL.md` directly.
+
+Cursor has no subagents: run plan tasks inline, one at a time. Use a strong model for spec, plan and review, and a
+fast model for executing an approved plan.
