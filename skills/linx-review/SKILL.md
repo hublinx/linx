@@ -1,6 +1,6 @@
 ---
 name: linx-review
-description: Use to review changes before shipping (and after each task with a risk) against the linx checklist plus project-specific items; also use when receiving review feedback.
+description: Use to review changes before shipping (and after each task with a risk) against the linx checklist plus project-specific items; also use when receiving review feedback, including comments on a GitHub PR or GitLab MR.
 ---
 # linx-review
 
@@ -30,6 +30,12 @@ and the spec/plan paths). Otherwise review yourself: `git diff origin/<base>...H
 concrete failure scenario and the fix. Fix all High and Medium (then re-verify) before `linx-ship`; Low → fix
 or list in the PR description.
 
-**Receiving feedback** (from the reviewer, the user or PR comments): check each point against the code before
-changing anything; push back with evidence when it is wrong; ask when it is unclear; no performative agreement.
-(Follow `receiving-code-review` if available.)
+**Receiving feedback** (reviewer agent, the user, or the PR/MR):
+1. PR/MR comments: `node .linx/forge.mjs pr-comments` — unresolved threads (with `path:line`), reviews and
+   comments. Skip bots unless they report a real problem.
+2. Each point: check it against the code before changing anything. Valid → fix (test first for behavior),
+   verify, commit. Wrong → push back with evidence. Unclear → ask. No performative agreement.
+   (Follow `receiving-code-review` if available.)
+3. Record each item and its outcome under `## Review` (source: PR/MR). Push, then `linx-ship` step 6 (CI).
+4. Replies on the PR/MR are public: draft them in `<work>/<slug>/replies.md` and post or resolve threads only
+   when the user asks.

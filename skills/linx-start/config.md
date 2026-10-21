@@ -5,7 +5,7 @@ Created by `linx init` (detected values), owned by the project — edit freely. 
 | Key | Default | Meaning |
 |---|---|---|
 | `baseBranch` | `origin/HEAD`, else `main` | Branch to start work from and to target PRs/MRs at. |
-| `forge` | from the `origin` URL | `github` (uses `gh`), `gitlab` (uses `glab`) or `none`. |
+| `forge` | from the `origin` URL | `github` (uses `gh`), `gitlab` (uses `glab`, incl. self-hosted) or `none`. Drives `.linx/forge.mjs`: issues, PR/MR, review comments, CI. |
 | `docsLanguage` | `English` | Language for spec, plan, progress and PR/MR text. Code, identifiers and commit messages stay English. |
 | `paths.work` | `docs/linx/work` | Work items: `<YYYY-MM-DD-slug>/{spec,plan,progress}.md`. May point outside the repo (e.g. `../team-workspace/work`) for multi-repo products. |
 | `paths.knowledge` | `docs/linx/knowledge` | `INDEX.md`, `architecture/`, `domains/`, `decisions/`. |

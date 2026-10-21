@@ -48,6 +48,8 @@ export function render(config, work) {
         '- Never claim "done" before `node .linx/verify.mjs` passes; record its `verify:` line.',
         `- Branch from origin/${base} and open a PR/MR into ${base}; never push to ${base} directly.`,
     ];
+    if (config.forge === 'github' || config.forge === 'gitlab')
+        lines.push(`- ${config.forge === 'github' ? 'GitHub' : 'GitLab'}: issues, PR/MR, review comments and CI via \`node .linx/forge.mjs\`.`);
     if (work.length) {
         lines.push('', 'Unfinished work (continue with `linx-resume <slug>`):');
         for (const w of work.slice(0, 5)) {

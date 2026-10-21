@@ -14,6 +14,8 @@ description: Use when continuing unfinished linx work — after switching agent 
    - no changes → start the task over.
 5. **`status: blocked`:** re-read `## Blocked`; continue only once the user has answered (record the answer under
    `## Decisions`).
-6. Update `updated:` (date, agent/tool, machine), then continue with `linx-execute` from that task.
+6. **Progress has `pr:`** (work already shipped): `node .linx/forge.mjs pr-status` → merged → `linx-ship` step 9;
+   CI failed → `linx-ship` step 6; changes requested or new comments → `linx-review` (Receiving feedback).
+7. Update `updated:` (date, agent/tool, machine), then continue with `linx-execute` from that task.
 
 Read only `plan.md` + `progress.md` (+ the spec sections the task needs). Do not re-read the whole spec.

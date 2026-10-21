@@ -55,6 +55,8 @@ The `skills/` folder follows the standard Agent Skills layout, so skill installe
 |---|---|---|
 | `.linx/config.json` | Base branch, forge, verify steps, escalation triggers, review checklist, paths | **you** (never overwritten) |
 | `.linx/verify.mjs` | Verify gate | linx |
+| `.linx/forge.mjs` | GitHub/GitLab bridge: issues, PR/MR, review comments, CI | linx |
+| PR/MR template, CI (`--ci`) | `.github/…` or `.gitlab/…`, created only when missing | **you** |
 | `.linx/baseline/` | Error baselines (after `--update-baseline`) | you |
 | `.linx/hooks/` | Session-start reminder, post-edit formatter + sensitive-file warning (Claude Code) | linx |
 | `.linx/lock.json` | Hashes of linx-managed files | linx |
@@ -81,7 +83,7 @@ Editors get autocompletion from [`schema/config.schema.json`](schema/config.sche
 | `linx-debug` | Bugs: reproduce → failing test → root cause → fix |
 | `linx-verify` | Before any "done": run the gate, record the `verify:` line |
 | `linx-review` | Checklist review (auth, contracts, money, data, security, performance, tests + your items) |
-| `linx-ship` | Knowledge update → PR/MR (`gh` / `glab`) → you merge ⛔ |
+| `linx-ship` | Knowledge update → PR/MR → wait for CI, fix failures → you merge ⛔ |
 | `linx-learn` | Write or refresh a domain doc from the code |
 | `linx-init` | Set up or update linx in a project |
 
@@ -98,8 +100,10 @@ Agent: (linx-start) Feature: it touches a shared API contract. → linx-spec …
 You:   Approved.
 Agent: (linx-plan) 6 tasks … plan.md + progress.md committed. Run with subagents or inline? ⛔
 …
-Agent: (linx-ship) verify: PASS 4/4 in 91s · review clean · PR opened: <link>. Merge is yours. ⛔
+Agent: (linx-ship) verify: PASS 4/4 in 91s · review clean · PR opened: <link> · CI green. Merge is yours. ⛔
 ```
+
+Start from an issue instead: *"linx-start #123"*. When review comments arrive: *"handle the PR comments"*.
 
 Out of quota halfway through? Open the repo in another agent and say **`linx-resume`**.
 
@@ -112,24 +116,41 @@ node .linx/verify.mjs --only=e2e            # steps with "default": false run on
 node .linx/verify.mjs --update-baseline     # record current tsc/eslint/ruff errors as the baseline
 ```
 
-## CI
+## GitHub & GitLab
 
-```yaml
-# GitHub Actions
-- run: node .linx/verify.mjs --skip=build
-- run: npx -y github:hublinx/linx check     # fails if linx-managed files were edited by hand
+`.linx/forge.mjs` gives the agent one set of commands for both forges. It wraps `gh` / `glab`, which must be
+installed and logged in (`gh auth login` / `glab auth login`). It works with self-hosted GitLab and GitHub
+Enterprise.
+
+| Command | Used for |
+|---|---|
+| `node .linx/forge.mjs info` | Which forge, is the CLI installed and logged in |
+| `node .linx/forge.mjs issue 123` | **Issue → work item.** `linx-start #123` reads the issue (title, body, comments) as the requirements. The PR/MR gets `Closes #123` |
+| `node .linx/forge.mjs pr-create --title=… --body-file=…` | Opens the PR/MR into the base branch, or returns the one already open |
+| `node .linx/forge.mjs pr-status` | open / merged / closed, review decision, CI summary (resume and post-merge steps) |
+| `node .linx/forge.mjs pr-comments` | Unresolved review threads (`path:line`), reviews and comments, which the agent then works through |
+| `node .linx/forge.mjs ci-status --wait` | Waits for the pipeline of the pushed commit: `success` / `failed` / `canceled` / `manual` / `none` |
+| `node .linx/forge.mjs ci-log` | Tail of the failed jobs' logs, so the agent can fix and push again |
+
+The agent never merges, and never posts review replies unless you ask. Replies are drafted in the work folder.
+
+### CI
+
+```bash
+npx -y github:hublinx/linx init --ci
 ```
 
-```yaml
-# GitLab CI
-verify:
-  script:
-    - node .linx/verify.mjs --skip=build
-    - npx -y github:hublinx/linx check
-```
-
-Run CI on the same Node version as your production image, and create baselines from an LF working copy (the
-same line endings CI sees).
+- **GitHub:** `.github/workflows/linx.yml` runs the verify gate and `linx check` on every PR and on pushes to the
+  base branch.
+- **GitLab:** `.gitlab/ci/linx.yml` holds the job. It is included from `.gitlab-ci.yml` (created if missing). An
+  existing file is edited only when that is safe; otherwise linx tells you the one line to add.
+- The toolchain is detected: the Node version comes from `.nvmrc`, `.node-version`, the Dockerfile `FROM node:…`
+  or `engines`, and npm, yarn (classic or berry), pnpm and bun are supported. Run CI on the same Node version as
+  production.
+- PR/MR templates (`.github/pull_request_template.md`, `.gitlab/merge_request_templates/Default.md`) are created
+  when the repo has none.
+- CI files and templates are yours: linx never overwrites them. Create baselines from an LF working copy, the
+  same line endings CI sees.
 
 ## Updating
 

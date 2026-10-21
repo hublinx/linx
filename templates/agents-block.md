@@ -8,6 +8,8 @@
 - Verify gate: `node .linx/verify.mjs` (or `--only=<steps>`). Never claim done before it passes.
 - Branches: `feat/<slug>`, `fix/<slug>`, `chore/<slug>` from `origin/{{baseBranch}}` → PR/MR into `{{baseBranch}}`.
   Never push to `{{baseBranch}}` directly; never merge your own PR/MR.
+- GitHub/GitLab: `node .linx/forge.mjs` — read issues, open PRs/MRs, read review comments, wait for CI
+  (`ci-status --wait`) and read failed logs (`ci-log`). A PR/MR is shipped only when its CI is green.
 - Knowledge: read `{{knowledge}}/INDEX.md` first, then only the relevant docs. Missing domain doc → `linx-learn`.
 - Stop and ask the user before touching: {{escalation}}.
 - Never read, write or commit secrets (`.env*`, keys, tokens). Use only read-only access to non-production data.

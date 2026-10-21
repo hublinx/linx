@@ -1,5 +1,6 @@
 ---
 slug: <YYYY-MM-DD-slug>
+issue: <issue URL or ->
 status: draft | approved
 approved-by: <name, date>
 ---

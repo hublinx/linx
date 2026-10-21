@@ -1,6 +1,6 @@
 {
     "name": "linx-sdlc",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "An AI-agent SDLC for any repo: spec → plan → execute → verify → review → ship, with resumable work state, a baseline-aware verify gate and project knowledge. Works with Claude Code, Cursor and Codex.",
     "type": "module",
     "bin": {

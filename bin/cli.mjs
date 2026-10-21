@@ -22,6 +22,7 @@ Options:
   --forge=<name>       github | gitlab | none (default: from the origin URL)
   --work=<path>        Work-state folder (default: docs/linx/work)
   --knowledge=<path>   Knowledge folder (default: docs/linx/knowledge)
+  --ci                 Also generate CI: GitHub Actions workflow or GitLab CI job (verify gate + linx check)
   --dry-run            Show what would change; write nothing
   --force              Overwrite managed files that were edited by hand
 `;
@@ -44,6 +45,7 @@ function summarize(actions) {
     for (const a of actions) {
         const notable =
             a.action === 'conflict' ||
+            a.action === 'manual' ||
             a.action === 'merge' ||
             a.action === 'remove' ||
             (a.action === 'create' && !/\/(skills|agents)\//.test(a.rel));
@@ -58,7 +60,9 @@ Next steps:
   2. Run: node .linx/verify.mjs
      Legacy errors? With your team's OK: node .linx/verify.mjs --update-baseline, then commit .linx/baseline/
   3. Fill the "Project" section of AGENTS.md (or ask your agent: "use linx-init" to do steps 1–3 with you).
-  4. Commit on a branch (e.g. chore/linx-setup). Then in your agent: "use linx-start".`;
+  4. GitHub/GitLab: install and log in to gh / glab, then check: node .linx/forge.mjs info
+     No CI yet? Re-run with --ci to generate one.
+  5. Commit on a branch (e.g. chore/linx-setup). Then in your agent: "use linx-start".`;
 
 function run(argv) {
     const opts = parseArgs(argv);
@@ -83,7 +87,7 @@ function run(argv) {
     }
     const tools = opts.tools === 'all' ? TOOLS : typeof opts.tools === 'string' ? opts.tools.split(',') : undefined;
     const plugin = opts.plugin ? true : opts['no-plugin'] ? false : undefined;
-    const result = plan(dir, { ...opts, tools, plugin, force: Boolean(opts.force) });
+    const result = plan(dir, { ...opts, tools, plugin, force: Boolean(opts.force), ci: Boolean(opts.ci) });
     console.log(`linx ${VERSION} ${command}${opts['dry-run'] ? ' (dry run)' : ''} → ${dir}`);
     console.log(`tools: ${result.lock.tools.join(', ')}${result.lock.plugin ? ' (Claude via plugin)' : ''}`);
     console.log(summarize(result.actions));
