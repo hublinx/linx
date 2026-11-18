@@ -100,6 +100,7 @@ Other ways in:
 | `linx-debug` | Bugs: reproduce → failing test → root cause → fix |
 | `linx-learn` | Write or refresh a domain doc from the code |
 | `linx-init` | Set up or update linx in a project |
+| `linx-lean` | The smallest complete change: YAGNI, reuse what exists, no unrequested abstractions (adapted from [ponytail](https://github.com/DietrichGebert/ponytail)) |
 
 Plus three Claude Code subagents: `linx-explorer` (haiku, search), `linx-implementer` (sonnet, one plan task)
 and `linx-reviewer` (opus, clean-context review).
@@ -127,7 +128,7 @@ npx -y github:hublinx/linx init --ci           # also generate CI (GitHub Action
 ```
 
 Skills are copied into the repo, so everyone who clones it gets the same workflow with nothing to install.
-Pin a version with `github:hublinx/linx#v0.3.0`.
+Pin a version with `github:hublinx/linx#v0.4.0`.
 
 ### Skills only
 
@@ -264,9 +265,15 @@ CI files and templates belong to you. linx never overwrites them.
     { "name": "e2e", "cmd": "npx playwright test", "default": false }
   ],
   "review": { "checklist": ["Every new endpoint has a permission check"] },
-  "sensitivePaths": ["(^|/)\\.env($|\\.)"]
+  "sensitivePaths": ["(^|/)\\.env($|\\.)"],
+  "mcp": ["codegraph", "playwright"]         // MCP servers to wire up; [] = none
 }
 ```
+
+**MCP servers.** linx adds [CodeGraph](https://www.npmjs.com/package/@colbymchenry/codegraph) (code search
+before grep) and [Playwright MCP](https://github.com/microsoft/playwright-mcp) (check UI changes in a browser) to
+`.mcp.json` and `.cursor/mcp.json`, launched through `.linx/mcp-run.mjs` so `npx` works on Windows too. Servers
+you already define are never overwritten. Index a repo once with `npx -y @colbymchenry/codegraph@1.6.3 init`.
 
 <details>
 <summary><b>Everything <code>init</code> creates or touches</b></summary>
@@ -274,7 +281,8 @@ CI files and templates belong to you. linx never overwrites them.
 | Path | What | Owner |
 |---|---|---|
 | `.linx/config.json` | Settings (above) | **you**, never overwritten |
-| `.linx/verify.mjs`, `.linx/forge.mjs` | Verify gate, GitHub/GitLab bridge | linx |
+| `.linx/verify.mjs`, `.linx/forge.mjs`, `.linx/mcp-run.mjs` | Verify gate, GitHub/GitLab bridge, MCP launcher | linx |
+| `.mcp.json`, `.cursor/mcp.json` | CodeGraph + Playwright MCP servers, merged, never replaced | shared |
 | `.linx/hooks/` | Session-start reminder; post-edit formatter + sensitive-file warning | linx |
 | `.linx/baseline/` | Error baselines | you |
 | `.linx/lock.json` | Hashes of linx-managed files (`linx check`) | linx |

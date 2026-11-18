@@ -3,7 +3,7 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
-import { PKG_ROOT, apply, check, ensureImport, mergeClaudeSettings, plan, upsertBlock } from '../lib/install.mjs';
+import { PKG_ROOT, apply, check, ensureImport, mergeClaudeSettings, mergeMcp, plan, upsertBlock } from '../lib/install.mjs';
 import { tempProject } from './helpers.mjs';
 
 const read = (dir, rel) => readFileSync(join(dir, rel), 'utf8');
@@ -119,7 +119,39 @@ test('existing AGENTS.md, CLAUDE.md and settings are preserved', () => {
         assert.equal(read(dir, 'CLAUDE.md'), '# Claude notes\n\n@AGENTS.md\n');
         const s = JSON.parse(read(dir, '.claude/settings.json'));
         assert.equal(s.model, 'opus');
-        assert.deepEqual(s.permissions.allow, ['Bash(ls:*)', 'Bash(node .linx/verify.mjs:*)']);
+        assert.deepEqual(s.permissions.allow, ['Bash(ls:*)', 'Bash(node .linx/verify.mjs:*)', 'mcp__codegraph__*']);
+    } finally {
+        cleanup();
+    }
+});
+
+test('MCP: codegraph and playwright are added for Claude and Cursor without overwriting existing servers', () => {
+    const mine = { command: 'my-codegraph' };
+    const { dir, cleanup } = tempProject({ '.mcp.json': { mcpServers: { codegraph: mine } } }, { git: true });
+    try {
+        install(dir, { tools: ['claude', 'cursor'] });
+        const claude = JSON.parse(read(dir, '.mcp.json')).mcpServers;
+        assert.deepEqual(claude.codegraph, mine);
+        assert.deepEqual(claude.playwright.args, ['.linx/mcp-run.mjs', 'npx', '-y', '@playwright/mcp@0.0.82']);
+        const cursor = JSON.parse(read(dir, '.cursor/mcp.json')).mcpServers;
+        assert.equal(cursor.codegraph.args[0], '${workspaceFolder}/.linx/mcp-run.mjs');
+        assert.ok(existsSync(join(dir, '.linx/mcp-run.mjs')));
+        const s = JSON.parse(read(dir, '.claude/settings.json'));
+        assert.deepEqual(s.enabledMcpjsonServers, ['codegraph', 'playwright']);
+        assert.deepEqual(byAction(plan(dir, {}), 'merge'), [], 'idempotent');
+    } finally {
+        cleanup();
+    }
+});
+
+test('MCP: config "mcp": [] wires nothing', () => {
+    const { dir, cleanup } = tempProject({ '.linx/config.json': { mcp: [] } }, { git: true });
+    try {
+        install(dir, { tools: ['claude'] });
+        assert.ok(!existsSync(join(dir, '.mcp.json')));
+        assert.ok(!existsSync(join(dir, '.linx/mcp-run.mjs')));
+        assert.equal(JSON.parse(read(dir, '.claude/settings.json')).enabledMcpjsonServers, undefined);
+        assert.throws(() => mergeMcp({}, ['nope'], 'x'), /Unknown MCP server/);
     } finally {
         cleanup();
     }

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0 — 2026-11-18
+- New `linx-lean` skill: the smallest complete change — YAGNI, reuse what exists, no unrequested abstractions,
+  options or dependencies; never cuts validation, error handling, security or tests. Adapted from
+  [ponytail](https://github.com/DietrichGebert/ponytail) v5.3.3 (MIT).
+- MCP servers: `init`/`update` add CodeGraph and Playwright MCP to `.mcp.json` (Claude) and `.cursor/mcp.json`
+  (Cursor) through a cross-platform launcher `.linx/mcp-run.mjs`; existing entries are never overwritten. Claude
+  settings get `enabledMcpjsonServers` and `mcp__codegraph__*`. Choose with the new config key `mcp` (`[]` = none).
+- AGENTS.md block: lean-code rule, CodeGraph before grep, Playwright for UI checks on local/dev servers only.
+- `linx-review`: new Simplicity and UI checklist items.
+
 ## 0.3.0 — 2026-10-21
 - .NET support: detects a root `*.sln`/`*.slnx`, a root project, or the only `*.csproj`/`*.fsproj`/`*.vbproj`;
   generates `dotnet build` (`--no-incremental`), `dotnet format --verify-no-changes` and `dotnet test` steps.

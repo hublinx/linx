@@ -37,3 +37,8 @@ Write project-specific ones as plain sentences, e.g. "anything under `src/billin
   `dotnet build`, and `dotnet format --verify-no-changes` issues). Errors are counted per file and only an increase
   over `.linx/baseline/<name>.json` fails. Lets legacy code adopt the gate without fixing everything first.
 - `default: false` (optional) — skipped unless named in `--only=` (slow suites, e2e).
+
+## `mcp`
+`["codegraph", "playwright"]` (default when missing) — MCP servers added to `.mcp.json` / `.cursor/mcp.json`.
+`[]` turns them off. Entries you already define are never overwritten; to remove one, drop it from this list and
+delete its entry by hand.

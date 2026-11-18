@@ -37,6 +37,12 @@
             "properties": { "checklist": { "type": "array", "items": { "type": "string" } } }
         },
         "sensitivePaths": { "type": "array", "items": { "type": "string", "format": "regex" } },
+        "mcp": {
+            "type": "array",
+            "items": { "enum": ["codegraph", "playwright"] },
+            "uniqueItems": true,
+            "description": "MCP servers added to .mcp.json / .cursor/mcp.json (missing = both; [] = none). Existing entries are never overwritten."
+        },
         "format": {
             "oneOf": [
                 { "type": "null" },

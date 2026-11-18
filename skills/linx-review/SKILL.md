@@ -24,7 +24,11 @@ and the spec/plan paths). Otherwise review yourself: `git diff origin/<base>...H
    collections filtered in memory.
 9. **Tests** — new tests assert real behavior (they fail without the change), not just execute code.
 10. **Conventions** — the repo's `AGENTS.md` rules.
-11. **Project items** — every entry in `review.checklist` of `.linx/config.json`.
+11. **Simplicity** (`linx-lean`) — lines deletable with no change in behavior; unrequested abstractions, options or
+    dependencies; code that duplicates an existing helper.
+12. **UI** — a user-facing UI change was exercised in a browser (Playwright MCP: snapshot, main flow, clean
+    console) and the result recorded in progress.
+13. **Project items** — every entry in `review.checklist` of `.linx/config.json`.
 
 **Record** under `## Review` in progress: issues by severity **High / Medium / Low**, each with `file:line`, a
 concrete failure scenario and the fix. Fix all High and Medium (then re-verify) before `linx-ship`; Low → fix
