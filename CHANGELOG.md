@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.1 — 2026-11-19
+- `linx-lean`: reusing an endpoint built for another screen or feature now requires checking that its permission
+  requirements (roles, scopes, guards) match the new caller; on a mismatch, use the endpoint the current screen
+  already calls. Found in an A/B run where the lean variant reused a lookup endpoint restricted to a narrower scope
+  than the screen, locking out some users.
+- `linx-review`: the Simplicity item also checks permission parity of reused endpoints.
+
 ## 0.4.0 — 2026-11-18
 - New `linx-lean` skill: the smallest complete change — YAGNI, reuse what exists, no unrequested abstractions,
   options or dependencies; never cuts validation, error handling, security or tests. Adapted from

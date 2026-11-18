@@ -128,7 +128,7 @@ npx -y github:hublinx/linx init --ci           # also generate CI (GitHub Action
 ```
 
 Skills are copied into the repo, so everyone who clones it gets the same workflow with nothing to install.
-Pin a version with `github:hublinx/linx#v0.4.0`.
+Pin a version with `github:hublinx/linx#v0.4.1`.
 
 ### Skills only
 

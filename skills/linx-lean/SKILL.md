@@ -15,6 +15,9 @@ callers that stop working. That is scope. Extra features are not.
 ## Take the first option that fully works
 1. Does it need to exist? Skip features, options and flexibility nobody asked for — name them in one line.
 2. Already in this codebase (helper, component, service, pattern)? Use it the way the surrounding code does.
+   Reusing an **endpoint built for another screen or feature**: first check that its permission requirements
+   (roles, scopes, guards) match the screen or caller you are building for. A mismatch → use the endpoint the
+   current screen already calls instead. Reuse that locks users out is not lean, it is a bug.
 3. Standard library or platform feature? Use it, unless the project has its own.
 4. An installed dependency? Use it. Never add a dependency for a few lines.
 5. One line a reader gets at a glance? One line.
