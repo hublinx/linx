@@ -30,6 +30,12 @@ try {
     validateConfig(cfg, { dryRun, noAi });
 } catch (err) {
     log.error(err.message);
+    // Trong Docker/Swarm: không thoát để tránh restart liên tục khi env chưa điền; chờ cập nhật stack.
+    if (process.env.EXIT_ON_CONFIG_ERROR === 'false') {
+        log.warn('Chờ cấu hình env hợp lệ (cập nhật stack để chạy lại)...');
+        setInterval(() => log.warn(`Vẫn thiếu cấu hình: ${err.message}`), 10 * 60000);
+        await new Promise(() => {});
+    }
     process.exit(1);
 }
 

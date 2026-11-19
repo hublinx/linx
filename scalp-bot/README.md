@@ -119,3 +119,15 @@ src/
 ```
 
 Chạy test (offline, dùng dữ liệu giả lập): `npm test`
+
+## CI/CD (GitLab) và deploy (Portainer)
+
+Repo GitLab: `hublinx/scalp-bot`. Mỗi lần push lên `main`, pipeline chạy 3 bước:
+
+1. `test`: chạy `npm test`.
+2. `docker-build`: build image và đẩy lên `registry.gitlab.com/hublinx/scalp-bot:latest` (kèm tag theo mã commit).
+3. `deploy`: gọi webhook Portainer để stack kéo image mới. Bước này chỉ chạy khi đã khai báo biến CI/CD `PORTAINER_WEBHOOK_URL`.
+
+Stack `scalp-bot` chạy trên Portainer, môi trường **CMS** (Swarm), dùng file `docker-stack.yml`. Dữ liệu thống kê lệnh được lưu trong volume `scalp-bot-data`.
+
+Để điền env, vào Portainer > Stacks > scalp-bot > Environment variables, điền `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` và `OPENAI_API_KEY`, rồi bấm **Update the stack**. Khi env còn thiếu, container không bị restart liên tục: nó chỉ ghi log "thiếu cấu hình" và chờ.
