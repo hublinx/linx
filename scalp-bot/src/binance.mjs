@@ -80,14 +80,31 @@ export function createBinance(cfg) {
         };
     }
 
+    // Bước giá (tick size) từ exchangeInfo, cache 24h
+    let ticks = { at: 0, map: {} };
+    async function tickSize(symbol) {
+        if (Date.now() - ticks.at > 86400000 || !(symbol in ticks.map)) {
+            const url = futures ? `${base}/fapi/v1/exchangeInfo` : `${base}/api/v3/exchangeInfo?${qs({ symbol })}`;
+            const info = await getJson(url);
+            const map = futures ? {} : { ...ticks.map };
+            for (const s of info.symbols || []) {
+                const f = (s.filters || []).find((x) => x.filterType === 'PRICE_FILTER');
+                if (f) map[s.symbol] = f.tickSize;
+            }
+            ticks = { at: Date.now(), map };
+        }
+        return ticks.map[symbol] ?? null;
+    }
+
     /** Toàn bộ dữ liệu cho 1 symbol. Nến chưa đóng bị loại khỏi phần tính chỉ báo. */
     async function snapshot(symbol, now = Date.now()) {
         const tfs = Object.keys(KLINE_LIMITS);
         const kl = await Promise.all(tfs.map((tf) => klines(symbol, tf)));
-        const [depth, ticker, deriv] = await Promise.allSettled([
+        const [depth, ticker, deriv, tick] = await Promise.allSettled([
             getJson(`${base}${p.depth}?${qs({ symbol, limit: 500 })}`),
             getJson(`${base}${p.ticker}?${qs({ symbol })}`),
             derivatives(symbol),
+            tickSize(symbol),
         ]);
         const klinesClosed = {};
         let livePrice = null;
@@ -110,6 +127,7 @@ export function createBinance(cfg) {
             klines: klinesClosed,
             depth: depth.status === 'fulfilled' ? depth.value : null,
             derivatives: deriv.status === 'fulfilled' ? deriv.value : null,
+            tickSize: tick.status === 'fulfilled' ? tick.value : null,
             warnings,
         };
     }

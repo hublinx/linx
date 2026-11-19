@@ -144,3 +144,15 @@ test('BTC chạy trước, ETH nhận btc_context; model xác nhận phản đ�
     assert.match(res.text, /ETHUSDT.*Không vào lệnh\n💡 .*Model xác nhận không đồng ý/);
     assert.deepEqual(t.openSignals().map((s) => s.symbol), ['BTCUSDT']);
 });
+
+test('Số thập phân theo tick size thật của Binance', async () => {
+    const { tickDecimals } = await import('../src/analyze.mjs');
+    assert.equal(tickDecimals('0.10'), 1);
+    assert.equal(tickDecimals('0.01000000'), 2);
+    assert.equal(tickDecimals('0.00001'), 5);
+    assert.equal(tickDecimals('1'), 0);
+    assert.equal(tickDecimals(null), null);
+    const snap = fakeSnapshot('DOGEUSDT', Date.UTC(2026, 10, 19, 9, 35, 5), { price: 0.38 });
+    assert.equal(analyzeSymbol(snap).decimals, 6, 'không có tick → đoán theo giá');
+    assert.equal(analyzeSymbol({ ...snap, tickSize: '0.00001' }).decimals, 5);
+});

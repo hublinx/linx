@@ -14,6 +14,15 @@ export function priceDecimals(price) {
     return 6;
 }
 
+/** Số chữ số thập phân từ tick size dạng chuỗi Binance, vd "0.00010000" → 4. */
+export function tickDecimals(tick) {
+    if (tick === null || tick === undefined) return null;
+    const s = String(tick);
+    if (!s.includes('.')) return 0;
+    const frac = s.split('.')[1].replace(/0+$/, '');
+    return frac.length;
+}
+
 export function round(x, d) {
     if (x === null || x === undefined || !Number.isFinite(x)) return null;
     const f = 10 ** d;
@@ -236,7 +245,7 @@ export function analyzeSymbol(snap) {
         market: snap.market,
         time: snap.fetchedAt,
         price,
-        decimals: priceDecimals(price),
+        decimals: tickDecimals(snap.tickSize) ?? priceDecimals(price),
         ticker: snap.ticker
             ? {
                   changePct24h: Number(snap.ticker.priceChangePercent),
