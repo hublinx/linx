@@ -136,8 +136,8 @@ function why(plan) {
     return short(plan?.summary || [plan?.setup, plan?.reasons?.[0]].filter(Boolean).join('. '));
 }
 
-export function headerShort(now, cfg) {
-    return `⚡ <b>SCALP ${cfg.intervalMinutes}M</b> · ${esc(fmtTime(now, cfg.displayTimezone))}`;
+export function headerShort(now, cfg, hasSignal = false) {
+    return `${hasSignal ? '🔴 ' : ''}<b>SCALP 5M</b> · ${esc(fmtTime(now, cfg.displayTimezone))}`;
 }
 
 export function signalShort(a, plan) {

@@ -129,6 +129,7 @@ test('Giờ xấu: tạm dừng, không gọi AI', async () => {
     );
     assert.equal(called, 0);
     assert.match(res.text, /Tạm không vào lệnh/);
+    assert.match(res.text, /^<b>SCALP 5M<\/b> · /, 'không có lệnh → không icon');
     assert.match(res.text, /funding/);
 });
 

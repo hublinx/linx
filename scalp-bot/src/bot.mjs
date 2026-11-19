@@ -113,7 +113,7 @@ export async function runCycle(deps, now = Date.now()) {
 
     const all = tracker.stats();
     const day = tracker.stats(now - 86400000);
-    const parts = [full ? F.header(now, cfg) : F.headerShort(now, cfg)];
+    const parts = [full ? F.header(now, cfg) : F.headerShort(now, cfg, hasSignal)];
     if (eventLines.length) parts.push(eventLines.join('\n'));
     parts.push(...sections);
     if (full) parts.push(`${F.statsLine(all, day)}\n<i>Không phải lời khuyên đầu tư. Luôn tuân thủ SL và quản lý vốn.</i>`);

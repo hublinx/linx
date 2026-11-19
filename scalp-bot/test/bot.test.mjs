@@ -209,6 +209,7 @@ test('Tin dạng ngắn (mặc định): Entry/TP1/TP2/TP3/SL + 1 dòng giải t
     };
     const res = await runCycle({ cfg: c, binance: fakeBinance(), tracker, aiPlan, log: silent }, NOW);
     const t = res.text;
+    assert.match(t, /^🔴 <b>SCALP 5M<\/b> · /, 'có lệnh → 🔴 đầu tiêu đề');
     assert.match(t, /BTCUSDT LONG<\/b> · 80%\nEntry: <code>[\d,.]+<\/code> \(vào ngay\)\nTP1: .+\nTP2: .+\nTP3: .+\nSL: .+\n💡 Hồi EMA21 \+ BOS 5m/);
     assert.match(t, /ETHUSDT<\/b> <code>[\d,.]+<\/code> · Không vào lệnh\n💡 Sideway, chờ short 3,112/);
     assert.doesNotMatch(t, /dài dòng|Lý do|Hợp lưu|Không phải lời khuyên/);
