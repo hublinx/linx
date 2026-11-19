@@ -49,6 +49,7 @@ export function loadConfig(env = process.env) {
         moveSlToBe: bool(env.MOVE_SL_TO_BE, true),
         allowStacking: bool(env.ALLOW_STACKING, false),
         sendNoTrade: bool(env.SEND_NO_TRADE, true),
+        noTradeReportMinutes: num(env.NO_TRADE_REPORT_MIN, 0), // không có lệnh: N phút gửi tóm tắt 1 lần (0 = tắt)
         messageStyle: (env.MESSAGE_STYLE || 'short').toLowerCase(), // short | full
 
         // Bộ lọc bổ sung

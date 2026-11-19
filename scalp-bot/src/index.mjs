@@ -11,7 +11,7 @@ import { createBinance } from './binance.mjs';
 import { createTelegram } from './telegram.mjs';
 import { getAiPlan } from './ai.mjs';
 import { Tracker } from './tracker.mjs';
-import { runCycle, dailyReportIfDue } from './bot.mjs';
+import { runCycle, dailyReportIfDue, shouldSend } from './bot.mjs';
 import { createCalendar } from './filters.mjs';
 
 const args = new Set(process.argv.slice(2));
@@ -55,15 +55,18 @@ const aiConfirm = cfg.aiConfirmModel ? (payload) => getAiPlan(payload, { ...cfg,
 const newsEvents = createCalendar(cfg, log);
 
 let running = false;
+let lastSentAt = 0;
 async function tick() {
     if (running) return log.warn('Chu kỳ trước chưa xong, bỏ qua lượt này');
     running = true;
     const started = Date.now();
     try {
         const res = await runCycle({ cfg, binance, tracker, aiPlan, aiConfirm, newsEvents, noAi, log });
-        const shouldSend = cfg.sendNoTrade || res.hasSignal || res.hasEvents;
         if (dryRun) console.log(`\n${res.text.replace(/<[^>]+>/g, '')}\n`);
-        else if (shouldSend) await telegram.send(res.text);
+        else if (shouldSend(res, cfg, lastSentAt)) {
+            await telegram.send(res.text);
+            lastSentAt = Date.now();
+        }
         const report = dailyReportIfDue(tracker, cfg);
         if (report) {
             if (dryRun) console.log(`\n${report.replace(/<[^>]+>/g, '')}\n`);

@@ -7,7 +7,7 @@ import { loadConfig } from '../src/config.mjs';
 import { fundingBlackout, newsBlackout, createCalendar } from '../src/filters.mjs';
 import { validatePlan } from '../src/risk.mjs';
 import { Tracker } from '../src/tracker.mjs';
-import { runCycle, dailyReportIfDue } from '../src/bot.mjs';
+import { runCycle, dailyReportIfDue, shouldSend } from '../src/bot.mjs';
 import { analyzeSymbol } from '../src/analyze.mjs';
 import { fakeSnapshot } from './fixtures.mjs';
 
@@ -156,4 +156,17 @@ test('Số thập phân theo tick size thật của Binance', async () => {
     const snap = fakeSnapshot('DOGEUSDT', Date.UTC(2026, 10, 19, 9, 35, 5), { price: 0.38 });
     assert.equal(analyzeSymbol(snap).decimals, 6, 'không có tick → đoán theo giá');
     assert.equal(analyzeSymbol({ ...snap, tickSize: '0.00001' }).decimals, 5);
+});
+
+test('Lịch gửi: có lệnh gửi ngay; không lệnh thì 10 phút 1 lần', () => {
+    const c = { ...cfg, sendNoTrade: false, noTradeReportMinutes: 10 };
+    const none = { hasSignal: false, hasEvents: false };
+    const t0 = DAY0;
+    assert.equal(shouldSend({ ...none, hasSignal: true }, c, t0, t0 + 60000), true);
+    assert.equal(shouldSend({ ...none, hasEvents: true }, c, t0, t0 + 60000), true);
+    assert.equal(shouldSend(none, c, t0, t0 + 2 * 60000), false);
+    assert.equal(shouldSend(none, c, t0, t0 + 8 * 60000), false);
+    assert.equal(shouldSend(none, c, t0, t0 + 10 * 60000 - 5000), true, 'lệch vài giây vẫn gửi');
+    assert.equal(shouldSend(none, { ...c, noTradeReportMinutes: 0 }, t0, t0 + 3600000), false);
+    assert.equal(shouldSend(none, { ...c, sendNoTrade: true }, t0, t0 + 1000), true);
 });

@@ -121,6 +121,13 @@ export async function runCycle(deps, now = Date.now()) {
     return { text: parts.join('\n\n'), hasSignal, hasEvents: eventLines.length > 0 };
 }
 
+/** Có gửi Telegram lượt này không: có lệnh/sự kiện thì gửi ngay; không có lệnh thì N phút gửi tóm tắt 1 lần. */
+export function shouldSend(res, cfg, lastSentAt, now = Date.now()) {
+    if (cfg.sendNoTrade || res.hasSignal || res.hasEvents) return true;
+    const n = cfg.noTradeReportMinutes;
+    return n > 0 && now - lastSentAt >= n * 60000 - 30000; // trừ 30s sai lệch lịch chạy
+}
+
 /** Báo cáo ngày: gửi 1 lần/ngày khi tới DAILY_REPORT_HOUR (theo DISPLAY_TZ). Trả về text hoặc null. */
 export function dailyReportIfDue(tracker, cfg, now = Date.now()) {
     if (!(cfg.dailyReportHour >= 0)) return null;
