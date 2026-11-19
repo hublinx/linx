@@ -26,10 +26,18 @@ const log = {
 };
 
 const cfg = loadConfig();
+const telegram = createTelegram(cfg);
+const canTelegram = !dryRun && cfg.telegramToken && cfg.telegramChatIds.length > 0;
 try {
     validateConfig(cfg, { dryRun, noAi });
 } catch (err) {
     log.error(err.message);
+    // Telegram đã cấu hình thì báo luôn để biết thiếu gì
+    if (canTelegram)
+        await telegram
+            .send(`⚠️ <b>Scalp bot</b> chưa chạy được: ${err.message.replace(/[<>&]/g, '')}`)
+            .then(() => log.info('Đã gửi cảnh báo thiếu cấu hình qua Telegram'))
+            .catch((e) => log.error(`Telegram lỗi: ${e.message}`));
     // Trong Docker/Swarm: không thoát để tránh restart liên tục khi env chưa điền; chờ cập nhật stack.
     if (process.env.EXIT_ON_CONFIG_ERROR === 'false') {
         log.warn('Chờ cấu hình env hợp lệ (cập nhật stack để chạy lại)...');
@@ -40,7 +48,6 @@ try {
 }
 
 const binance = createBinance(cfg);
-const telegram = createTelegram(cfg);
 const tracker = new Tracker(join(resolve(cfg.dataDir), 'signals.json'), cfg);
 const aiPlan = (payload) => getAiPlan(payload, cfg);
 
@@ -72,7 +79,13 @@ function msUntilNext() {
 if (once) {
     await tick();
 } else {
-    log.info(`Bot khởi động: ${cfg.symbols.join(', ')} · ${cfg.market} · mỗi ${cfg.intervalMinutes} phút · model ${noAi ? '(tắt AI)' : cfg.openaiModel}`);
+    const hello = `Bot khởi động: ${cfg.symbols.join(', ')} · ${cfg.market} · mỗi ${cfg.intervalMinutes} phút · model ${noAi ? '(tắt AI)' : cfg.openaiModel} @ ${new URL(cfg.openaiBaseUrl).host}`;
+    log.info(hello);
+    if (canTelegram)
+        await telegram
+            .send(`🤖 <b>Scalp bot</b> ${hello.slice(4)}`)
+            .then(() => log.info('Đã gửi tin khởi động qua Telegram'))
+            .catch((e) => log.error(`Telegram lỗi: ${e.message} — hãy mở bot trên Telegram và bấm Start (/start)`));
     await tick();
     let timer;
     const schedule = () => {
