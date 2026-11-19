@@ -10,6 +10,7 @@ import * as F from './format.mjs';
  */
 export async function runCycle(deps, now = Date.now()) {
     const { cfg, binance, tracker, aiPlan, noAi = false, log = console } = deps;
+    const full = cfg.messageStyle === 'full';
     const sections = [];
     const eventLines = [];
     let hasSignal = false;
@@ -43,10 +44,13 @@ export async function runCycle(deps, now = Date.now()) {
         const stillOpen = tracker.open(symbol);
 
         // 2. Đang có lệnh → chỉ báo trạng thái, không phát lệnh chồng
-        if (stillOpen && !cfg.allowStacking) return { section: F.openSection(a, stillOpen), events, decimals: a.decimals };
+        if (stillOpen && !cfg.allowStacking) return { section: full ? F.openSection(a, stillOpen) : F.openShort(a, stillOpen), events, decimals: a.decimals };
 
         // 3. Phân tích AI + kiểm duyệt
-        if (noAi) return { section: F.noTradeSection(a, { note: 'Chế độ --no-ai: chỉ chấm điểm hợp lưu.' }), events, decimals: a.decimals };
+        if (noAi) {
+            const note = 'Chế độ --no-ai: chỉ chấm điểm hợp lưu.';
+            return { section: full ? F.noTradeSection(a, { note }) : F.noTradeShort(a, { note }), events, decimals: a.decimals };
+        }
 
         const best = a.confluence.LONG.score >= a.confluence.SHORT.score ? a.confluence.LONG.score : a.confluence.SHORT.score;
         const { plan } = await aiPlan(toAiPayload(a, cfg));
@@ -54,9 +58,10 @@ export async function runCycle(deps, now = Date.now()) {
         log.info(`[${symbol}] AI=${plan.decision} conf=${plan.confidence} best_confluence=${best} ok=${verdict.ok} ${verdict.rejections.join(' | ')}`);
         if (verdict.ok) {
             tracker.add({ symbol, side: plan.decision, plan: verdict.plan, createdAt: now, price: a.price });
-            return { section: F.signalSection(a, verdict.plan, verdict.metrics), events, signal: true, decimals: a.decimals };
+            return { section: full ? F.signalSection(a, verdict.plan, verdict.metrics) : F.signalShort(a, verdict.plan), events, signal: true, decimals: a.decimals };
         }
-        return { section: F.noTradeSection(a, { plan, rejections: verdict.rejections }), events, decimals: a.decimals };
+        const nt = { plan, rejections: verdict.rejections };
+        return { section: full ? F.noTradeSection(a, nt) : F.noTradeShort(a, nt), events, decimals: a.decimals };
     }
 
     for (const r of results) {
@@ -66,9 +71,12 @@ export async function runCycle(deps, now = Date.now()) {
     }
     tracker.save();
 
-    const parts = [F.header(now, cfg)];
+    const all = tracker.stats();
+    const day = tracker.stats(now - 86400000);
+    const parts = [full ? F.header(now, cfg) : F.headerShort(now, cfg)];
     if (eventLines.length) parts.push(eventLines.join('\n'));
     parts.push(...sections);
-    parts.push(`${F.statsLine(tracker.stats(), tracker.stats(now - 86400000))}\n<i>Không phải lời khuyên đầu tư. Luôn tuân thủ SL và quản lý vốn.</i>`);
+    if (full) parts.push(`${F.statsLine(all, day)}\n<i>Không phải lời khuyên đầu tư. Luôn tuân thủ SL và quản lý vốn.</i>`);
+    else if (F.statsShort(all, day)) parts.push(F.statsShort(all, day));
     return { text: parts.join('\n\n'), hasSignal, hasEvents: eventLines.length > 0 };
 }

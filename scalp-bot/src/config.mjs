@@ -49,6 +49,7 @@ export function loadConfig(env = process.env) {
         moveSlToBe: bool(env.MOVE_SL_TO_BE, true),
         allowStacking: bool(env.ALLOW_STACKING, false),
         sendNoTrade: bool(env.SEND_NO_TRADE, true),
+        messageStyle: (env.MESSAGE_STYLE || 'short').toLowerCase(), // short | full
 
         dataDir: env.DATA_DIR || './data',
         displayTimezone: env.DISPLAY_TZ || 'Asia/Ho_Chi_Minh',

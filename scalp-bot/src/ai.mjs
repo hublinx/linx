@@ -26,6 +26,7 @@ export const SIGNAL_SCHEMA = {
         'trap_warning',
         'invalidation',
         'watch_levels',
+        'summary',
     ],
     properties: {
         decision: { type: 'string', enum: ['LONG', 'SHORT', 'NO_TRADE'] },
@@ -52,6 +53,7 @@ export const SIGNAL_SCHEMA = {
         trap_warning: { type: 'string' },
         invalidation: { type: 'string' },
         watch_levels: { type: 'string' },
+        summary: { type: 'string' },
     },
 };
 
@@ -84,7 +86,8 @@ LUẬT CỨNG (vi phạm bất kỳ điều nào => NO_TRADE):
 
 entry_type: LIMIT tại mức hồi khi giá đang giữa nhịp; MARKET chỉ khi giá đang nằm đúng vùng entry và 1m đã xác nhận. valid_minutes: 10-${cfg.signalValidMinutes} phút cho lệnh LIMIT.
 Khi NO_TRADE: các trường giá, entry_type, valid_minutes = null; nêu rõ điều kiện nào thiếu trong reasons và ghi vào watch_levels các mức/điều kiện cần chờ để có kèo (ví dụ "Long nếu hồi về 91,200-91,250 giữ được + 1m nhấn chìm tăng").
-Mọi trường chữ viết bằng tiếng Việt, ngắn gọn, đúng thuật ngữ trader (EMA, BOS, CHoCH, FVG, OB, CVD...). reasons 3-6 ý, risks 1-4 ý.`;
+Mọi trường chữ viết bằng tiếng Việt, ngắn gọn, đúng thuật ngữ trader (EMA, BOS, CHoCH, FVG, OB, CVD...). reasons 3-6 ý, risks 1-4 ý.
+summary: 1 câu ngắn (tối đa 25 từ) giải thích lý do chính; nếu NO_TRADE thì nêu lý do + mức giá cần chờ. Đây là dòng duy nhất người dùng đọc nên phải súc tích, cụ thể.`;
 }
 
 export async function getAiPlan(payload, cfg) {

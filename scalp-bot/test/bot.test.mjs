@@ -12,7 +12,7 @@ import { getAiPlan, SIGNAL_SCHEMA } from '../src/ai.mjs';
 import { fakeSnapshot } from './fixtures.mjs';
 
 const NOW = Date.UTC(2026, 10, 19, 9, 35, 5);
-const cfg = loadConfig({ OPENAI_API_KEY: 'sk-test' });
+const cfg = loadConfig({ OPENAI_API_KEY: 'sk-test', MESSAGE_STYLE: 'full' });
 const silent = { info() {}, warn() {}, error() {} };
 
 test('analyzeSymbol: dữ liệu tăng → hợp lưu LONG > SHORT, payload JSON hợp lệ', () => {
@@ -192,4 +192,25 @@ test('getAiPlan gửi đúng request và parse JSON', async () => {
     } finally {
         globalThis.fetch = orig;
     }
+});
+
+test('Tin dạng ngắn (mặc định): Entry/TP1/TP2/TP3/SL + 1 dòng giải thích', async () => {
+    const short = loadConfig({ OPENAI_API_KEY: 'sk-test' });
+    assert.equal(short.messageStyle, 'short');
+    const c = { ...short, minConfluence: 0, minScoreGap: -100 };
+    const tracker = new Tracker(join(mkdtempSync(join(tmpdir(), 'scalp-')), 's.json'), c);
+    const base = { trend_bias: { h4: 'UP', h1: 'UP', m15: 'UP', m5: 'UP', m1: 'UP' }, ma_analysis: 'dài dòng', reasons: ['lý do dài'], risks: ['r'], trap_warning: 'bẫy', invalidation: 'x' };
+    const aiPlan = async (payload) => {
+        const p = payload.current_price;
+        const atr = payload.atr_5m;
+        if (payload.symbol !== 'BTCUSDT')
+            return { plan: { ...base, decision: 'NO_TRADE', confidence: 30, setup: '', entry_type: null, entry: null, entry_zone_low: null, entry_zone_high: null, stop_loss: null, tp1: null, tp2: null, tp3: null, valid_minutes: null, watch_levels: '', summary: 'Sideway, chờ short 3,112' } };
+        return { plan: { ...base, decision: 'LONG', confidence: 80, setup: 's', entry_type: 'MARKET', entry: p, entry_zone_low: p, entry_zone_high: p, stop_loss: p - 1.2 * atr, tp1: p + 1.4 * atr, tp2: p + 2.5 * atr, tp3: p + 3.6 * atr, valid_minutes: 20, watch_levels: '', summary: 'Hồi EMA21 + BOS 5m' } };
+    };
+    const res = await runCycle({ cfg: c, binance: fakeBinance(), tracker, aiPlan, log: silent }, NOW);
+    const t = res.text;
+    assert.match(t, /BTCUSDT LONG<\/b> · 80%\nEntry: <code>[\d,.]+<\/code> \(vào ngay\)\nTP1: .+\nTP2: .+\nTP3: .+\nSL: .+\n💡 Hồi EMA21 \+ BOS 5m/);
+    assert.match(t, /ETHUSDT<\/b> <code>[\d,.]+<\/code> · Không vào lệnh\n💡 Sideway, chờ short 3,112/);
+    assert.doesNotMatch(t, /dài dòng|Lý do|Hợp lưu|Không phải lời khuyên/);
+    assert.ok(t.length < 600, `tin quá dài: ${t.length}`);
 });
