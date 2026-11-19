@@ -39,6 +39,6 @@ Write project-specific ones as plain sentences, e.g. "anything under `src/billin
 - `default: false` (optional) — skipped unless named in `--only=` (slow suites, e2e).
 
 ## `mcp`
-`["codegraph", "playwright"]` (default when missing) — MCP servers added to `.mcp.json` / `.cursor/mcp.json`.
-`[]` turns them off. Entries you already define are never overwritten; to remove one, drop it from this list and
+`["codegraph"]` (default when missing) — MCP servers added to `.mcp.json` / `.cursor/mcp.json`. Add `"playwright"`
+to opt in to browser checks (needs Google Chrome). `[]` turns them off. Entries you already define are never overwritten; to remove one, drop it from this list and
 delete its entry by hand.

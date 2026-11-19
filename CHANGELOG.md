@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.5.0 — 2026-11-19
+- **Removed `linx-lean`.** In A/B runs on a real task the "smallest change" rule kept moving the corner-cutting
+  somewhere else (a reused endpoint with stricter permissions, a wrong query syntax, skipped tests and a re-written
+  helper) and cost savings were within run-to-run noise. `linx update` deletes the copied skill.
+- Kept the one rule that held up: `linx-review` → **Authorization** now checks that a reused endpoint built for
+  another screen has the same permission requirements as its new caller. The Simplicity and UI items are gone.
+- **Playwright MCP is opt-in** (`"mcp": ["codegraph", "playwright"]`; needs Google Chrome). The default is CodeGraph
+  only. Existing `.mcp.json` entries are never removed by `update`.
+- AGENTS.md block: removed the lean-code and Playwright lines; CodeGraph-first search stays.
+
 ## 0.4.1 — 2026-11-19
 - `linx-lean`: reusing an endpoint built for another screen or feature now requires checking that its permission
   requirements (roles, scopes, guards) match the new caller; on a mismatch, use the endpoint the current screen

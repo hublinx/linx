@@ -125,20 +125,34 @@ test('existing AGENTS.md, CLAUDE.md and settings are preserved', () => {
     }
 });
 
-test('MCP: codegraph and playwright are added for Claude and Cursor without overwriting existing servers', () => {
+test('MCP: codegraph by default for Claude and Cursor, existing servers never overwritten', () => {
     const mine = { command: 'my-codegraph' };
     const { dir, cleanup } = tempProject({ '.mcp.json': { mcpServers: { codegraph: mine } } }, { git: true });
     try {
         install(dir, { tools: ['claude', 'cursor'] });
         const claude = JSON.parse(read(dir, '.mcp.json')).mcpServers;
         assert.deepEqual(claude.codegraph, mine);
-        assert.deepEqual(claude.playwright.args, ['.linx/mcp-run.mjs', 'npx', '-y', '@playwright/mcp@0.0.82']);
+        assert.equal(claude.playwright, undefined, 'playwright is opt-in');
         const cursor = JSON.parse(read(dir, '.cursor/mcp.json')).mcpServers;
         assert.equal(cursor.codegraph.args[0], '${workspaceFolder}/.linx/mcp-run.mjs');
         assert.ok(existsSync(join(dir, '.linx/mcp-run.mjs')));
         const s = JSON.parse(read(dir, '.claude/settings.json'));
-        assert.deepEqual(s.enabledMcpjsonServers, ['codegraph', 'playwright']);
+        assert.deepEqual(s.enabledMcpjsonServers, ['codegraph']);
         assert.deepEqual(byAction(plan(dir, {}), 'merge'), [], 'idempotent');
+    } finally {
+        cleanup();
+    }
+});
+
+test('MCP: playwright when opted in via config', () => {
+    const { dir, cleanup } = tempProject(
+        { '.linx/config.json': { mcp: ['codegraph', 'playwright'] } },
+        { git: true },
+    );
+    try {
+        install(dir, { tools: ['claude'] });
+        const claude = JSON.parse(read(dir, '.mcp.json')).mcpServers;
+        assert.deepEqual(claude.playwright.args, ['.linx/mcp-run.mjs', 'npx', '-y', '@playwright/mcp@0.0.82']);
     } finally {
         cleanup();
     }

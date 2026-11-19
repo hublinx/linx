@@ -10,12 +10,8 @@
   Never push to `{{baseBranch}}` directly; never merge your own PR/MR.
 - GitHub/GitLab: `node .linx/forge.mjs` — read issues, open PRs/MRs, read review comments, wait for CI
   (`ci-status --wait`) and read failed logs (`ci-log`). A PR/MR is shipped only when its CI is green.
-- Code: the smallest complete change (`linx-lean`) — reuse what exists, no unrequested abstractions, options or
-  dependencies; never cut validation, error handling, security or tests.
 - Code search: CodeGraph MCP (`codegraph_explore`) before grep. First use in a repo:
   `npx -y @colbymchenry/codegraph@1.6.3 init` (index lives in `.codegraph/`).
-- UI changes: check them in a browser with the Playwright MCP (snapshot, main flow, console) on a local/dev
-  server only — never against production.
 - Knowledge: read `{{knowledge}}/INDEX.md` first, then only the relevant docs. Missing domain doc → `linx-learn`.
 - Stop and ask the user before touching: {{escalation}}.
 - Never read, write or commit secrets (`.env*`, keys, tokens). Use only read-only access to non-production data.

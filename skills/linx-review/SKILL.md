@@ -11,7 +11,8 @@ and the spec/plan paths). Otherwise review yourself: `git diff origin/<base>...H
 1. **Spec fit** — does what the spec/plan says; nothing missing; no unrequested extras.
 2. **Correctness** — edge cases (empty, null, limits, concurrency, time zones); error paths handled.
 3. **Authorization** — new endpoints, routes and actions have the right checks; nothing public by accident; data
-   filtered by what the caller may see.
+   filtered by what the caller may see. A reused endpoint built for another screen has the same permission
+   requirements (roles, scopes, guards) as the screen that now calls it.
 4. **Contracts** — producer ↔ consumer types match (names, types, nullability); renamed/removed fields: every
    usage found and updated; backward compatible or versioned.
 5. **Money & numbers** — rounding, currency/units, accumulation; no equality on floats; no floats for money where
@@ -24,12 +25,7 @@ and the spec/plan paths). Otherwise review yourself: `git diff origin/<base>...H
    collections filtered in memory.
 9. **Tests** — new tests assert real behavior (they fail without the change), not just execute code.
 10. **Conventions** — the repo's `AGENTS.md` rules.
-11. **Simplicity** (`linx-lean`) — lines deletable with no change in behavior; unrequested abstractions, options or
-    dependencies; code that duplicates an existing helper. A reused endpoint has the same permission requirements
-    as the screen or caller that now uses it.
-12. **UI** — a user-facing UI change was exercised in a browser (Playwright MCP: snapshot, main flow, clean
-    console) and the result recorded in progress.
-13. **Project items** — every entry in `review.checklist` of `.linx/config.json`.
+11. **Project items** — every entry in `review.checklist` of `.linx/config.json`.
 
 **Record** under `## Review` in progress: issues by severity **High / Medium / Low**, each with `file:line`, a
 concrete failure scenario and the fix. Fix all High and Medium (then re-verify) before `linx-ship`; Low → fix
