@@ -124,6 +124,9 @@ export function statsLine(all, day) {
 
 // ===== Dạng ngắn (mặc định) =====
 
+// Số không có dấu phẩy để chạm-copy dán thẳng vào sàn
+const raw = (x, d) => (x === null || x === undefined || !Number.isFinite(x) ? '—' : x.toFixed(d));
+
 const short = (t, n = 160) => {
     const x = String(t ?? '').trim();
     return x.length > n ? `${x.slice(0, n - 1)}…` : x;
@@ -142,11 +145,11 @@ export function signalShort(a, plan) {
     const long = plan.decision === 'LONG';
     const lines = [
         `${long ? '🟢' : '🔴'} <b>${esc(a.symbol)} ${long ? 'LONG' : 'SHORT'}</b> · ${plan.confidence}%`,
-        `Entry: <code>${fmtPrice(plan.entry, d)}</code>${plan.entry_type === 'MARKET' ? ' (vào ngay)' : ` (Limit, ${plan.valid_minutes}p)`}`,
-        `TP1: <code>${fmtPrice(plan.tp1, d)}</code>`,
-        `TP2: <code>${fmtPrice(plan.tp2, d)}</code>`,
-        `TP3: <code>${fmtPrice(plan.tp3, d)}</code>`,
-        `SL: <code>${fmtPrice(plan.stop_loss, d)}</code>`,
+        `Entry: <code>${raw(plan.entry, d)}</code>${plan.entry_type === 'MARKET' ? ' (vào ngay)' : ` (Limit, ${plan.valid_minutes}p)`}`,
+        `TP1: <code>${raw(plan.tp1, d)}</code>`,
+        `TP2: <code>${raw(plan.tp2, d)}</code>`,
+        `TP3: <code>${raw(plan.tp3, d)}</code>`,
+        `SL: <code>${raw(plan.stop_loss, d)}</code>`,
     ];
     const w = why(plan);
     if (w) lines.push(`💡 ${esc(w)}`);
@@ -154,7 +157,7 @@ export function signalShort(a, plan) {
 }
 
 export function noTradeShort(a, { plan, rejections = [], note } = {}) {
-    const head = `⚪ <b>${esc(a.symbol)}</b> <code>${fmtPrice(a.price, a.decimals)}</code> · Không vào lệnh`;
+    const head = `⚪ <b>${esc(a.symbol)}</b> <code>${raw(a.price, a.decimals)}</code> · Không vào lệnh`;
     let w;
     if (plan && plan.decision !== 'NO_TRADE' && rejections.length) w = `AI muốn ${plan.decision} nhưng bị lọc: ${rejections[0]}`;
     else if (plan) w = why(plan);
@@ -167,7 +170,7 @@ export function openShort(a, sig) {
     const s = sig.side === 'LONG' ? 1 : -1;
     const liveR = sig.status === 'ACTIVE' ? ((a.price - sig.entry) * s) / Math.abs(sig.entry - sig.sl) : null;
     const state = sig.status === 'PENDING' ? 'chờ khớp' : `đang chạy${sig.tpHit ? `, đã TP${sig.tpHit}` : ''}${liveR !== null ? ` · ${sign(liveR)}R` : ''}`;
-    return `🔵 <b>${esc(sig.symbol)} ${sig.side}</b> ${state}\nEntry <code>${fmtPrice(sig.entry, d)}</code> · SL <code>${fmtPrice(sig.currentSl, d)}</code> · giá <code>${fmtPrice(a.price, d)}</code>`;
+    return `🔵 <b>${esc(sig.symbol)} ${sig.side}</b> ${state}\nEntry <code>${raw(sig.entry, d)}</code> · SL <code>${raw(sig.currentSl, d)}</code> · giá <code>${raw(a.price, d)}</code>`;
 }
 
 export function statsShort(all, day) {
