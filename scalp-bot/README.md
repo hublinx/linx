@@ -69,6 +69,13 @@ Xem đầy đủ trong `.env.example`. Một số biến hay chỉnh:
 | `MIN_CONFIDENCE` / `MIN_CONFLUENCE` / `MIN_SCORE_GAP` | `70` / `60` / `15` | Tăng lên để lọc chặt hơn (ít lệnh hơn). |
 | `MIN_RR_TP1` / `MIN_RR_TP3` | `1.0` / `2.0` | R:R tối thiểu. |
 | `ALLOW_STACKING` | `false` | Khi đang có lệnh mở thì không phát lệnh mới cho cùng coin. |
+| `MESSAGE_STYLE` | `short` | `short`: Entry/TP/SL + 1 dòng giải thích, số chạm để copy. `full`: bản chi tiết. |
+| `FUNDING_BLACKOUT_MIN` | `10` | Không vào lệnh ±N phút quanh giờ chốt funding (07:00, 15:00, 23:00 giờ VN). |
+| `NEWS_BLACKOUT_MIN` | `15` | Không vào lệnh ±N phút quanh tin USD tác động mạnh (CPI, FOMC, NFP…), lấy từ lịch ForexFactory. |
+| `BTC_FILTER` | `true` | ETH không LONG khi BTC giảm ở 5m + 15m, và ngược lại. |
+| `FEE_PCT` / `MIN_RR_TP1_NET` | `0.08` / `0.8` | Phí khứ hồi (%). TP1 phải đạt R:R ≥ 0.8 sau phí. Thống kê R cũng đã trừ phí. |
+| `AI_CONFIRM_MODEL` | (trống) | Model thứ 2 phải đồng ý mới vào lệnh. Chính xác hơn nhưng tốn gấp đôi phí AI. |
+| `DAILY_REPORT_HOUR` | `21` | Giờ gửi báo cáo ngày: winrate và R theo coin/chiều và theo độ tin cậy. `-1` để tắt. |
 
 Chi phí: mỗi chu kỳ tốn khoảng 2 lần gọi OpenAI (mỗi coin một lần, khoảng 6–10k token đầu vào). Coin nào đang có lệnh mở thì không gọi AI cho coin đó.
 

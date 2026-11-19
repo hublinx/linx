@@ -12,7 +12,7 @@ import { getAiPlan, SIGNAL_SCHEMA } from '../src/ai.mjs';
 import { fakeSnapshot } from './fixtures.mjs';
 
 const NOW = Date.UTC(2026, 10, 19, 9, 35, 5);
-const cfg = loadConfig({ OPENAI_API_KEY: 'sk-test', MESSAGE_STYLE: 'full' });
+const cfg = loadConfig({ OPENAI_API_KEY: 'sk-test', MESSAGE_STYLE: 'full', FEE_PCT: '0' });
 const silent = { info() {}, warn() {}, error() {} };
 
 test('analyzeSymbol: dữ liệu tăng → hợp lưu LONG > SHORT, payload JSON hợp lệ', () => {
@@ -195,7 +195,7 @@ test('getAiPlan gửi đúng request và parse JSON', async () => {
 });
 
 test('Tin dạng ngắn (mặc định): Entry/TP1/TP2/TP3/SL + 1 dòng giải thích', async () => {
-    const short = loadConfig({ OPENAI_API_KEY: 'sk-test' });
+    const short = loadConfig({ OPENAI_API_KEY: 'sk-test', FEE_PCT: '0' });
     assert.equal(short.messageStyle, 'short');
     const c = { ...short, minConfluence: 0, minScoreGap: -100 };
     const tracker = new Tracker(join(mkdtempSync(join(tmpdir(), 'scalp-')), 's.json'), c);

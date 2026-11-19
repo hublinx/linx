@@ -64,7 +64,8 @@ test('plan SHORT hợp lệ', () => {
 });
 
 const m = (t, o, h, l, c) => ({ openTime: t, closeTime: t + 59999, open: o, high: h, low: l, close: c });
-const tracker = () => new Tracker(join(mkdtempSync(join(tmpdir(), 'scalp-')), 'signals.json'), cfg);
+const noFee = loadConfig({ FEE_PCT: '0' });
+const tracker = (c = noFee) => new Tracker(join(mkdtempSync(join(tmpdir(), 'scalp-')), 'signals.json'), c);
 const plan = { entry_type: 'LIMIT', entry: 100, stop_loss: 99, tp1: 101, tp2: 102, tp3: 103, valid_minutes: 10, confidence: 80, setup: 'x' };
 
 test('LIMIT khớp → TP1 → dời SL hòa vốn → BE', () => {

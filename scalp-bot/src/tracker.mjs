@@ -58,6 +58,8 @@ export class Tracker {
             closedAt: null,
             exitPrice: null,
             lastChecked: createdAt,
+            // phí khứ hồi quy ra R, trừ 1 lần khi đóng lệnh
+            feeR: this.cfg.feePct ? (plan.entry * this.cfg.feePct) / 100 / Math.abs(plan.entry - plan.stop_loss) : 0,
         };
         this.state.signals.push(sig);
         return sig;
@@ -77,7 +79,7 @@ export class Tracker {
 
         const close = (c, outcome, exitPrice) => {
             const remaining = WEIGHTS.slice(sig.tpHit).reduce((a, b) => a + b, 0);
-            sig.realizedR += remaining * rOf(exitPrice);
+            sig.realizedR += remaining * rOf(exitPrice) - (sig.feeR || 0);
             sig.status = 'CLOSED';
             sig.outcome = outcome;
             sig.exitPrice = exitPrice;
@@ -128,6 +130,7 @@ export class Tracker {
                 if (sig.tpHit === 3) {
                     sig.status = 'CLOSED';
                     sig.outcome = 'TP3';
+                    sig.realizedR -= sig.feeR || 0;
                     sig.exitPrice = tp;
                     sig.closedAt = c.closeTime;
                     events.push({ type: 'TP3', sig });
@@ -146,10 +149,45 @@ export class Tracker {
         return events;
     }
 
-    stats(sinceMs = 0) {
-        const done = this.state.signals.filter(
+    closedSince(sinceMs = 0) {
+        return this.state.signals.filter(
             (x) => x.status === 'CLOSED' && x.activatedAt != null && !['UNFILLED', 'MISSED'].includes(x.outcome) && x.closedAt >= sinceMs,
         );
+    }
+
+    static summarize(done) {
+        const wins = done.filter((x) => x.tpHit >= 1 || (x.outcome === 'TIMEOUT' && x.realizedR > 0)).length;
+        const totalR = done.reduce((a, x) => a + x.realizedR, 0);
+        return { trades: done.length, wins, losses: done.length - wins, winrate: done.length ? (wins / done.length) * 100 : null, totalR };
+    }
+
+    /** Thống kê theo nhóm để biết setup nào ăn/thua. */
+    report(sinceMs = 0) {
+        const done = this.closedSince(sinceMs);
+        const group = (keyFn) => {
+            const m = new Map();
+            for (const x of done) {
+                const k = keyFn(x);
+                if (!m.has(k)) m.set(k, []);
+                m.get(k).push(x);
+            }
+            return [...m.entries()].map(([k, arr]) => ({ key: k, ...Tracker.summarize(arr) })).sort((a, b) => b.trades - a.trades);
+        };
+        const bucket = (c) => (c >= 90 ? '≥90%' : c >= 80 ? '80-89%' : '70-79%');
+        const skipped = this.state.signals.filter((x) => x.closedAt >= sinceMs && ['UNFILLED', 'MISSED'].includes(x.outcome)).length;
+        const outcomes = {};
+        for (const x of done) outcomes[x.outcome] = (outcomes[x.outcome] || 0) + 1;
+        return {
+            total: Tracker.summarize(done),
+            bySymbolSide: group((x) => `${x.symbol} ${x.side}`),
+            byConfidence: group((x) => bucket(x.confidence ?? 0)),
+            outcomes,
+            skipped,
+        };
+    }
+
+    stats(sinceMs = 0) {
+        const done = this.closedSince(sinceMs);
         const wins = done.filter((x) => x.tpHit >= 1 || (x.outcome === 'TIMEOUT' && x.realizedR > 0)).length;
         const totalR = done.reduce((a, x) => a + x.realizedR, 0);
         return { trades: done.length, wins, losses: done.length - wins, winrate: done.length ? (wins / done.length) * 100 : null, totalR };

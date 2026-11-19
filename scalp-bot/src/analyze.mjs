@@ -4,8 +4,8 @@ import * as I from './indicators.mjs';
 import * as S from './structure.mjs';
 
 const last = (a, k = 1) => a[a.length - k];
-const SWING_K = { '1m': 3, '5m': 3, '15m': 3, '1h': 3, '4h': 2 };
-const TFS = ['4h', '1h', '15m', '5m', '1m'];
+const SWING_K = { '1m': 3, '5m': 3, '15m': 3, '1h': 3, '4h': 2, '1d': 2 };
+const TFS = ['1d', '4h', '1h', '15m', '5m', '1m'];
 
 export function priceDecimals(price) {
     if (price >= 10000) return 1; // BTC tick 0.1
@@ -118,7 +118,7 @@ function derivativesSummary(d, priceChange1hPct) {
 export function sideConfluence(a, side) {
     const s = side === 'LONG' ? 1 : -1;
     const gt = (x, y) => x !== null && y !== null && (s > 0 ? x > y : x < y);
-    const { '4h': t4, '1h': t1h, '15m': t15, '5m': t5, '1m': t1 } = a.tf;
+    const { '1d': tD, '4h': t4, '1h': t1h, '15m': t15, '5m': t5, '1m': t1 } = a.tf;
     const atr5 = t5.atr;
     const dir = s > 0 ? 'UP' : 'DOWN';
     const checks = [];
@@ -126,6 +126,7 @@ export function sideConfluence(a, side) {
 
     add('Xu hướng 1H (giá & EMA21 vs EMA50)', 15, gt(t1h.close, t1h.ema50) && gt(t1h.ema21, t1h.ema50));
     add('Bối cảnh 4H (giá vs EMA50)', 5, gt(t4.close, t4.ema50));
+    add('Xu hướng 1D (giá vs EMA21)', 5, gt(tD.close, tD.ema21));
     add('Xu hướng 15m (EMA21 vs EMA50, giá vs EMA50)', 15, gt(t15.ema21, t15.ema50) && gt(t15.close, t15.ema50));
     const ev = t5.structure.event;
     add(
@@ -189,7 +190,7 @@ export function sideConfluence(a, side) {
 
 export function analyzeSymbol(snap) {
     const k = snap.klines;
-    for (const tf of TFS) if (!k[tf] || k[tf].length < 60) throw new Error(`Thiếu dữ liệu nến ${tf} cho ${snap.symbol}`);
+    for (const tf of TFS) if (!k[tf] || k[tf].length < (tf === '1d' ? 30 : 60)) throw new Error(`Thiếu dữ liệu nến ${tf} cho ${snap.symbol}`);
     const tf = Object.fromEntries(TFS.map((t) => [t, summarizeTf(k[t], t)]));
     const price = snap.price ?? tf['1m'].close;
     const atr5 = tf['5m'].atr;
@@ -215,6 +216,7 @@ export function analyzeSymbol(snap) {
     const pick = (t, n) => tf[t].swings.slice(-n).map((s) => s.price);
     const levels = S.clusterLevels(
         [
+            { prices: pick('1d', 6), weight: 4, tag: '1D' },
             { prices: pick('4h', 12), weight: 3, tag: '4H' },
             { prices: pick('1h', 16), weight: 2, tag: '1H' },
             { prices: pick('15m', 16), weight: 1, tag: '15m' },

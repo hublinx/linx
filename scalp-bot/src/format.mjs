@@ -178,3 +178,26 @@ export function statsShort(all, day) {
     const f = (x) => `${x.trades} lệnh · win ${x.winrate.toFixed(0)}% · ${sign(x.totalR, 1)}R`;
     return `📈 24h: ${day.trades ? f(day) : '—'} | Tổng: ${f(all)}`;
 }
+
+export function dailyReport(rep, cfg, now) {
+    const t = rep.total;
+    const day = new Date(now).toLocaleDateString('vi-VN', { timeZone: cfg.displayTimezone });
+    if (!t.trades) return `📊 <b>Báo cáo ngày ${esc(day)}</b>\nChưa có lệnh nào đóng trong 24h${rep.skipped ? ` (${rep.skipped} lệnh hủy không khớp)` : ''}.`;
+    const row = (g) => `• ${esc(g.key)}: ${g.trades} lệnh · win ${g.winrate.toFixed(0)}% · ${sign(g.totalR, 1)}R`;
+    const oc = Object.entries(rep.outcomes)
+        .map(([k, v]) => `${k} ${v}`)
+        .join(' · ');
+    return [
+        `📊 <b>Báo cáo ngày ${esc(day)}</b>`,
+        `Tổng: <b>${t.trades} lệnh · win ${t.winrate.toFixed(0)}% · ${sign(t.totalR, 1)}R</b> (đã trừ phí)`,
+        `Kết quả: ${oc}${rep.skipped ? ` · hủy ${rep.skipped}` : ''}`,
+        '<b>Theo coin/chiều</b>',
+        ...rep.bySymbolSide.map(row),
+        '<b>Theo độ tin cậy</b>',
+        ...rep.byConfidence.map(row),
+    ].join('\n');
+}
+
+export function pausedShort(a, reason) {
+    return `⏸ <b>${esc(a.symbol)}</b> <code>${raw(a.price, a.decimals)}</code> · Tạm không vào lệnh\n💡 ${esc(short(reason))}`;
+}

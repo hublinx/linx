@@ -46,7 +46,7 @@ const qs = (o) =>
         .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
         .join('&');
 
-export const KLINE_LIMITS = { '1m': 240, '5m': 500, '15m': 300, '1h': 300, '4h': 250, '1d': 10 };
+export const KLINE_LIMITS = { '1m': 240, '5m': 500, '15m': 300, '1h': 300, '4h': 250, '1d': 120 };
 
 export function createBinance(cfg) {
     const futures = cfg.market === 'futures';

@@ -51,6 +51,17 @@ export function loadConfig(env = process.env) {
         sendNoTrade: bool(env.SEND_NO_TRADE, true),
         messageStyle: (env.MESSAGE_STYLE || 'short').toLowerCase(), // short | full
 
+        // Bộ lọc bổ sung
+        fundingBlackoutMinutes: num(env.FUNDING_BLACKOUT_MIN, 10),
+        newsBlackoutMinutes: num(env.NEWS_BLACKOUT_MIN, 15),
+        newsCalendarUrl: env.NEWS_CALENDAR_URL ?? 'https://nfs.faireconomy.media/ff_calendar_thisweek.json',
+        newsCountries: list(env.NEWS_COUNTRIES, 'USD').map((s) => s.toUpperCase()),
+        btcFilter: bool(env.BTC_FILTER, true),
+        feePct: num(env.FEE_PCT, 0.08), // phí khứ hồi % (maker vào + taker ra)
+        minRR1Net: num(env.MIN_RR_TP1_NET, 0.8), // R:R TP1 sau phí
+        aiConfirmModel: env.AI_CONFIRM_MODEL || '', // model thứ 2 phải đồng ý (tùy chọn)
+        dailyReportHour: num(env.DAILY_REPORT_HOUR, 21), // giờ gửi báo cáo ngày (theo DISPLAY_TZ), -1 = tắt
+
         dataDir: env.DATA_DIR || './data',
         displayTimezone: env.DISPLAY_TZ || 'Asia/Ho_Chi_Minh',
     };

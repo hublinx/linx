@@ -90,5 +90,20 @@ export function validatePlan(plan, ctx, cfg) {
     if (mine < cfg.minConfluence) rejections.push(`Điểm hợp lưu ${plan.decision} ${mine} < ${cfg.minConfluence}`);
     if (mine - other < cfg.minScoreGap) rejections.push(`Hợp lưu ${plan.decision} ${mine} chưa vượt trội phía kia ${other} (cần chênh ≥ ${cfg.minScoreGap})`);
 
+    // 6. Phí giao dịch: TP1 phải còn lời sau phí khứ hồi
+    if (cfg.feePct) {
+        const fee = (p.entry * cfg.feePct) / 100;
+        metrics.rr1Net = (Math.abs(p.tp1 - p.entry) - fee) / (risk + fee);
+        if (metrics.rr1Net < cfg.minRR1Net - 1e-9)
+            rejections.push(`TP1 quá gần: R:R sau phí ${round(metrics.rr1Net, 2)} < ${cfg.minRR1Net}`);
+    }
+
+    // 7. Altcoin đi theo BTC: không LONG khi BTC giảm (5m+15m), không SHORT khi BTC tăng
+    if (cfg.btcFilter && ctx.btc && ctx.symbol && ctx.symbol !== 'BTCUSDT') {
+        const against = s > 0 ? 'BEAR' : 'BULL';
+        if (ctx.btc.m5 === against && ctx.btc.m15 === against)
+            rejections.push(`BTC đang ${s > 0 ? 'giảm' : 'tăng'} (5m + 15m), không ${plan.decision} ${ctx.symbol}`);
+    }
+
     return { ok: rejections.length === 0, plan: p, rejections, metrics };
 }

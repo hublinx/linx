@@ -48,7 +48,7 @@ export function genCandles({ n, tf, endPrice, driftPct = 0.02, volPct = 0.15, se
 
 /** Snapshot giả lập như binance.snapshot() trả về. */
 export function fakeSnapshot(symbol, now, { price = 91000, drift = 0.02, seed = 7 } = {}) {
-    const n = { '1m': 240, '5m': 500, '15m': 300, '1h': 300, '4h': 250, '1d': 10 };
+    const n = { '1m': 240, '5m': 500, '15m': 300, '1h': 300, '4h': 250, '1d': 120 };
     const scale = { '1m': 0.25, '5m': 0.5, '15m': 0.8, '1h': 1.5, '4h': 3, '1d': 6 };
     const klines = {};
     let i = 0;

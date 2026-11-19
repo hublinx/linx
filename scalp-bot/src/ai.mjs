@@ -63,7 +63,7 @@ export function systemPrompt(cfg) {
 Dữ liệu đầu vào là JSON tính từ dữ liệu Binance thật (chỉ nến đã đóng): giá, các đường MA (MA7/25/99 mặc định Binance, EMA9/21/50/200) trên 5 khung, RSI, MACD, Bollinger, ATR, ADX/DI, StochRSI, CVD (delta khối lượng taker), cấu trúc thị trường (swing, BOS/CHoCH), vùng hỗ trợ/kháng cự gom đa khung, VWAP phiên, đỉnh/đáy ngày trước, FVG chưa lấp, quét thanh khoản (stop hunt), mô hình nến, sổ lệnh, open interest, funding, tỉ lệ long/short, và checklist hợp lưu tất định (long.score / short.score 0-100).
 
 QUY TRÌNH PHÂN TÍCH (top-down, bắt buộc):
-A. 4h → 1h → 15m: xác định xu hướng bằng cấu trúc HH/HL hoặc LH/LL + vị trí giá so với EMA50/EMA200 + độ dốc EMA + ADX/DI.
+A. 1d → 4h → 1h → 15m: xác định xu hướng bằng cấu trúc HH/HL hoặc LH/LL + vị trí giá so với EMA50/EMA200 + độ dốc EMA + ADX/DI.
 B. Các đường MA: thứ tự sắp xếp (EMA9>21>50>200 = tăng mạnh), giao cắt gần đây (EMA9/21, EMA21/50, MA7/25), giá đang test đường nào, đường nào là hỗ trợ/kháng cự động. Viết nhận xét vào ma_analysis.
 C. 5m: cấu trúc, BOS/CHoCH, vị trí giá trong vùng giá trị (EMA21/50, VWAP, FVG, S/R đã retest).
 D. 1m: tín hiệu kích hoạt (cắt EMA9/21, nến nhấn chìm, pin bar, quét đáy/đỉnh rồi lấy lại).
@@ -82,7 +82,9 @@ LUẬT CỨNG (vi phạm bất kỳ điều nào => NO_TRADE):
 9. Phía được chọn phải có confluence score >= ${cfg.minConfluence} và cao hơn phía còn lại ít nhất ${cfg.minScoreGap} điểm.
 10. confidence là đánh giá trung thực 0-100 về chất lượng setup. Dưới ${cfg.minConfidence} => NO_TRADE.
 11. Chỉ dùng số liệu có trong dữ liệu hoặc suy ra trực tiếp từ đó. Không bịa mức giá.
-12. Thứ tự giá: LONG: stop_loss < entry_zone_low <= entry <= entry_zone_high < tp1 < tp2 < tp3. SHORT: stop_loss > entry_zone_high >= entry >= entry_zone_low > tp1 > tp2 > tp3.
+12. Altcoin (có btc_context): không LONG khi BTC giảm ở cả 5m và 15m, không SHORT khi BTC tăng ở cả 5m và 15m; BTC ngược chiều 1h là cảnh báo, giảm confidence.
+13. Phí khứ hồi khoảng ${cfg.feePct}% giá: TP1 phải đủ xa để vẫn lời sau phí; TP1 quá sát entry => NO_TRADE.
+14. Thứ tự giá: LONG: stop_loss < entry_zone_low <= entry <= entry_zone_high < tp1 < tp2 < tp3. SHORT: stop_loss > entry_zone_high >= entry >= entry_zone_low > tp1 > tp2 > tp3.
 
 entry_type: LIMIT tại mức hồi khi giá đang giữa nhịp; MARKET chỉ khi giá đang nằm đúng vùng entry và 1m đã xác nhận. valid_minutes: 10-${cfg.signalValidMinutes} phút cho lệnh LIMIT.
 Khi NO_TRADE: các trường giá, entry_type, valid_minutes = null; nêu rõ điều kiện nào thiếu trong reasons và ghi vào watch_levels các mức/điều kiện cần chờ để có kèo (ví dụ "Long nếu hồi về 91,200-91,250 giữ được + 1m nhấn chìm tăng").

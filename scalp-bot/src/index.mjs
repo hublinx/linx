@@ -11,7 +11,8 @@ import { createBinance } from './binance.mjs';
 import { createTelegram } from './telegram.mjs';
 import { getAiPlan } from './ai.mjs';
 import { Tracker } from './tracker.mjs';
-import { runCycle } from './bot.mjs';
+import { runCycle, dailyReportIfDue } from './bot.mjs';
+import { createCalendar } from './filters.mjs';
 
 const args = new Set(process.argv.slice(2));
 const once = args.has('--once');
@@ -50,6 +51,8 @@ try {
 const binance = createBinance(cfg);
 const tracker = new Tracker(join(resolve(cfg.dataDir), 'signals.json'), cfg);
 const aiPlan = (payload) => getAiPlan(payload, cfg);
+const aiConfirm = cfg.aiConfirmModel ? (payload) => getAiPlan(payload, { ...cfg, openaiModel: cfg.aiConfirmModel }) : undefined;
+const newsEvents = createCalendar(cfg, log);
 
 let running = false;
 async function tick() {
@@ -57,10 +60,16 @@ async function tick() {
     running = true;
     const started = Date.now();
     try {
-        const res = await runCycle({ cfg, binance, tracker, aiPlan, noAi, log });
+        const res = await runCycle({ cfg, binance, tracker, aiPlan, aiConfirm, newsEvents, noAi, log });
         const shouldSend = cfg.sendNoTrade || res.hasSignal || res.hasEvents;
         if (dryRun) console.log(`\n${res.text.replace(/<[^>]+>/g, '')}\n`);
         else if (shouldSend) await telegram.send(res.text);
+        const report = dailyReportIfDue(tracker, cfg);
+        if (report) {
+            if (dryRun) console.log(`\n${report.replace(/<[^>]+>/g, '')}\n`);
+            else await telegram.send(report);
+            log.info('Đã gửi báo cáo ngày');
+        }
         log.info(`Xong chu kỳ trong ${((Date.now() - started) / 1000).toFixed(1)}s${res.hasSignal ? ' — CÓ TÍN HIỆU' : ''}`);
     } catch (err) {
         log.error(err.stack || err.message);
@@ -79,7 +88,7 @@ function msUntilNext() {
 if (once) {
     await tick();
 } else {
-    const hello = `Bot khởi động: ${cfg.symbols.join(', ')} · ${cfg.market} · mỗi ${cfg.intervalMinutes} phút · model ${noAi ? '(tắt AI)' : cfg.openaiModel} @ ${new URL(cfg.openaiBaseUrl).host}`;
+    const hello = `Bot khởi động: ${cfg.symbols.join(', ')} · ${cfg.market} · mỗi ${cfg.intervalMinutes} phút · model ${noAi ? '(tắt AI)' : cfg.openaiModel}${cfg.aiConfirmModel ? ` + ${cfg.aiConfirmModel}` : ''} @ ${new URL(cfg.openaiBaseUrl).host}`;
     log.info(hello);
     if (canTelegram)
         await telegram
