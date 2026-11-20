@@ -1,0 +1,23 @@
+{
+    "name": "binance-mcp",
+    "version": "1.0.0",
+    "private": true,
+    "description": "MCP server (không cần auth) cung cấp dữ liệu Binance + chỉ báo kỹ thuật đa khung cho AI phân tích biểu đồ",
+    "type": "module",
+    "engines": {
+        "node": ">=20"
+    },
+    "bin": {
+        "binance-mcp": "src/server.mjs"
+    },
+    "scripts": {
+        "start": "node src/server.mjs",
+        "stdio": "node src/server.mjs --stdio",
+        "test": "node --test spec/*.spec.mjs"
+    },
+    "dependencies": {
+        "@modelcontextprotocol/sdk": "1.32.2",
+        "zod": "4.6.7"
+    },
+    "license": "MIT"
+}

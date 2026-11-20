@@ -1,0 +1,50 @@
+# Stack Swarm cho Portainer (môi trường CMS). Env điền trong Portainer > Stacks > scalp-bot.
+services:
+  bot:
+    image: registry.gitlab.com/hublinx/scalp-bot:latest
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-https://api.openai.com/v1}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-5-mini}
+      - OPENAI_REASONING_EFFORT=${OPENAI_REASONING_EFFORT:-}
+      - SYMBOLS=${SYMBOLS:-BTCUSDT,ETHUSDT}
+      - BINANCE_MARKET=${BINANCE_MARKET:-futures}
+      - INTERVAL_MINUTES=${INTERVAL_MINUTES:-5}
+      - SEND_NO_TRADE=${SEND_NO_TRADE:-true}
+      - NO_TRADE_REPORT_MIN=${NO_TRADE_REPORT_MIN:-0}
+      - MESSAGE_STYLE=${MESSAGE_STYLE:-short}
+      - FUNDING_BLACKOUT_MIN=${FUNDING_BLACKOUT_MIN:-10}
+      - NEWS_BLACKOUT_MIN=${NEWS_BLACKOUT_MIN:-15}
+      - BTC_FILTER=${BTC_FILTER:-true}
+      - FEE_PCT=${FEE_PCT:-0.08}
+      - MIN_RR_TP1_NET=${MIN_RR_TP1_NET:-0.8}
+      - AI_CONFIRM_MODEL=${AI_CONFIRM_MODEL:-}
+      - DAILY_REPORT_HOUR=${DAILY_REPORT_HOUR:-21}
+      - MIN_CONFIDENCE=${MIN_CONFIDENCE:-70}
+      - MIN_CONFLUENCE=${MIN_CONFLUENCE:-60}
+      - MIN_SCORE_GAP=${MIN_SCORE_GAP:-15}
+      - DISPLAY_TZ=Asia/Ho_Chi_Minh
+    volumes:
+      - scalp-bot-data:/app/data
+    networks:
+      - nginx-proxy_proxy-network
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: any
+        delay: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  scalp-bot-data:
+
+networks:
+  nginx-proxy_proxy-network:
+    external: true
