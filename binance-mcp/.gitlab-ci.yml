@@ -1,0 +1,43 @@
+stages:
+  - test
+  - build
+  - deploy
+
+test:
+  stage: test
+  tags:
+    - hublinx
+  image: node:22-alpine
+  script:
+    - npm install --no-audit --no-fund
+    - npm test
+
+docker-build:
+  stage: build
+  tags:
+    - hublinx
+  image: docker:27
+  services:
+    - docker:27-dind
+  variables:
+    IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+    IMAGE_LATEST: $CI_REGISTRY_IMAGE:latest
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+  script:
+    - docker build -t "$IMAGE" -t "$IMAGE_LATEST" .
+    - docker push "$IMAGE"
+    - docker push "$IMAGE_LATEST"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+
+# Redeploy stack Portainer khi có biến CI/CD PORTAINER_WEBHOOK_URL
+deploy:
+  stage: deploy
+  tags:
+    - hublinx
+  image: curlimages/curl:8.10.1
+  script:
+    - curl -fsS -X POST "$PORTAINER_WEBHOOK_URL"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main" && $PORTAINER_WEBHOOK_URL'

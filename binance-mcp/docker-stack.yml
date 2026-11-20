@@ -1,0 +1,32 @@
+# Stack Swarm cho Portainer (môi trường CMS).
+# Public HTTPS: trong Nginx Proxy Manager tạo Proxy Host <domain> → http://binance-mcp:3000 (bật SSL).
+# Truy cập nhanh không cần domain: http://<IP-server>:3100/mcp
+services:
+  binance-mcp:
+    image: registry.gitlab.com/hublinx/binance-mcp:latest
+    hostname: binance-mcp
+    environment:
+      - PORT=3000
+      - CACHE_MS=${CACHE_MS:-5000}
+    ports:
+      - target: 3000
+        published: 3100
+        protocol: tcp
+        mode: host
+    networks:
+      - nginx-proxy_proxy-network
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: any
+        delay: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  nginx-proxy_proxy-network:
+    external: true
