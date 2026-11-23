@@ -1,0 +1,41 @@
+name: Build footprint.exe
+
+# Builds a standalone Windows EXE for the footprint tool on a Windows runner
+# and uploads it as an artifact you can download from the run's summary page.
+# Run manually from the Actions tab (workflow_dispatch) or on pushes that
+# touch footprint/.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "footprint/**"
+      - ".github/workflows/footprint-exe.yml"
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: footprint
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install PyInstaller
+        run: python -m pip install --upgrade pyinstaller
+
+      - name: Build EXE
+        run: python -m PyInstaller --onefile --console --name footprint footprint.py
+
+      - name: Smoke test
+        run: dist\footprint.exe --help
+
+      - name: Upload EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: footprint-windows-exe
+          path: footprint/dist/footprint.exe
+          if-no-files-found: error

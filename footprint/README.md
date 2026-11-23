@@ -1,91 +1,120 @@
-# footprint — Kiểm toán dấu vết số trên máy của chính bạn
+# footprint — Quét & kiểm toán máy của chính bạn
 
-Công cụ dòng lệnh **minh bạch**, chạy trên **máy của bạn**, để xem lại:
+Công cụ dòng lệnh **minh bạch**, chạy trên **máy của bạn**, để tự xem lại:
 
-- **Domain / lịch sử** bạn từng truy cập (Chrome, Edge, Brave, Vivaldi, Opera, Firefox…)
-- **Tìm từ khóa sâu trong file** trên ổ đĩa (keyword hoặc regex)
-- **Thống kê profile trình duyệt**: profile, extension, số bookmark
+- **history** — Lịch sử trình duyệt: từng domain truy cập **lúc nào**, **bao nhiêu lần**, và **được ghi ở file/DB nào** (Chrome, Edge, Brave, Vivaldi, Opera, Firefox…).
+- **search** — Tìm từ khóa / regex **sâu trong nội dung file** trên ổ đĩa.
+- **profiles** — Thống kê profile trình duyệt: extension, số bookmark (không đụng credential).
+- **logs** — Tìm **file log** rải rác trong máy (`.log`, `.evtx`, `.etl`) và **truy vấn Windows Event Log**.
 
-Chỉ dùng **thư viện chuẩn của Python** → không cần `pip install`.
+Chỉ dùng **thư viện chuẩn của Python** → không cần `pip install` để chạy từ mã nguồn.
 
 ## Nguyên tắc quan trọng
 
 > Công cụ này **KHÔNG đọc, KHÔNG giải mã, KHÔNG xuất mật khẩu hay cookie** đã lưu.
-> Đó là hành vi của phần mềm đánh cắp thông tin (infostealer) và nằm ngoài phạm vi.
+> Muốn lấy **mật khẩu của chính bạn** → dùng export sẵn có, có xác thực:
+> - Chrome/Edge/Brave: `chrome://password-manager/settings` → **Export passwords**.
+> - Firefox: `about:logins` → `⋯` → **Export Logins**.
 >
-> Muốn lấy **mật khẩu của chính bạn** → dùng tính năng export sẵn có, có xác thực:
-> - Chrome/Edge/Brave: `chrome://password-manager/settings` → **Export passwords** (cần Windows Hello / mật khẩu Windows).
-> - Firefox: `about:logins` → menu `⋯` → **Export Logins**.
->
-> Hãy chỉ chạy trên máy bạn sở hữu hoặc được ủy quyền hợp pháp.
+> Chỉ chạy trên máy bạn sở hữu hoặc được ủy quyền hợp pháp.
 
-## Yêu cầu
+---
 
-- Python 3.8+ ([python.org](https://www.python.org/downloads/) — khi cài nhớ tick *Add Python to PATH*).
-- Đóng trình duyệt trước khi chạy `history` sẽ cho kết quả đầy đủ nhất (nhưng không bắt buộc — tool tự copy DB ra bản tạm để đọc kể cả khi trình duyệt đang mở).
-
-## Cách dùng
+## Cách dùng (từ mã nguồn)
 
 ```bat
 python footprint.py <lệnh> --help
 ```
 
-### 1. Lịch sử / domain
+### 1. Lịch sử / domain — *mỗi lần truy cập lúc nào, ghi ở đâu*
 
 ```bat
-:: Top 50 domain truy cập nhiều nhất (mặc định)
+:: Tổng hợp domain: số lượt + lần đầu + lần cuối
 python footprint.py history
 
-:: Top 20 và xuất ra file
-python footprint.py history --top 20
-python footprint.py history --out domains.csv
-python footprint.py history --out domains.json
-python footprint.py history --out report.html
+:: Dòng thời gian TỪNG LẦN truy cập một domain (kèm nơi được ghi lại)
+python footprint.py history --domain github.com
+
+:: Toàn bộ visit theo khoảng thời gian
+python footprint.py history --timeline --since 2026-11-01 --until 2026-11-23
+
+:: Xuất ra file
+python footprint.py history --out timeline.csv
+python footprint.py history --domain facebook.com --out fb.html
 ```
 
-Quét tự động mọi profile của mọi trình duyệt tìm thấy cho user hiện tại, gộp theo domain, kèm số lượt và lần truy cập gần nhất.
+Mỗi dòng timeline cho biết: **thời điểm**, **trình duyệt/profile**, **URL**, và cuối cùng liệt kê **file DB** nơi bản ghi được lưu (ví dụ `...\User Data\Default\History`).
 
 ### 2. Tìm từ khóa trong file
 
 ```bat
-:: Tìm "invoice" trong thư mục Documents
 python footprint.py search invoice %USERPROFILE%\Documents
-
-:: Regex, chỉ trong file .log và .txt
 python footprint.py search "api[_-]?key" C:\project --regex --ext log txt
-
-:: Quét mọi loại file text (không chỉ các đuôi phổ biến), gồm cả file ẩn
 python footprint.py search "mật khẩu" D:\ --all-types --hidden
-
-:: Chỉ in tóm tắt rồi lưu kết quả ra JSON
 python footprint.py search TODO . --quiet --out hits.json
 ```
 
-Mặc định chỉ quét các đuôi file text thường gặp, bỏ qua file nhị phân, file > 20MB, và các thư mục hệ thống (`Windows`, `Program Files`, `node_modules`, `.git`…). Xem thêm cờ với `search --help`.
+Mặc định chỉ quét đuôi text thường gặp, bỏ qua file nhị phân, file > 20MB, và thư mục hệ thống. Xem `search --help`.
 
 ### 3. Thống kê profile
 
 ```bat
 python footprint.py profiles        :: tóm tắt
-python footprint.py profiles -v     :: liệt kê tên từng extension
+python footprint.py profiles -v     :: liệt kê tên extension
 ```
 
-## Định dạng export của `history`
+### 4. Log trong máy
 
-| Đuôi file | Nội dung |
-|-----------|----------|
-| `.csv`    | domain, số lượt, lần cuối (mở được bằng Excel) |
-| `.json`   | danh sách domain **và** toàn bộ URL chi tiết |
-| `.html`   | báo cáo bảng xem bằng trình duyệt |
+```bat
+:: Tìm mọi file log (.log/.evtx/.etl) mới nhất trong các thư mục log chuẩn
+python footprint.py logs
+python footprint.py logs --include-txt --top 50 --since 2026-11-01
 
-## Chạy thử nhanh (không đụng dữ liệu thật)
+:: Truy vấn Windows Event Log (chỉ trên Windows)
+python footprint.py logs --events System --last 24h
+python footprint.py logs --events Application --last 7d --out app-events.json
+python footprint.py logs --events Security --last 24h    :: cần chạy Administrator
+```
 
-Tool đã được kiểm thử với dữ liệu giả. Bạn có thể tự tạo dữ liệu mẫu để xem cách hoạt động trước khi chạy trên dữ liệu thật — xem phần test trong lịch sử phát triển, hoặc chỉ cần chạy `search` trên một thư mục bất kỳ.
+`logs` không cần `--events` sẽ **liệt kê file log** kèm thời gian sửa + kích thước + đường dẫn. Dùng `search` để tìm bên trong các file `.log`/`.txt` đó. Kênh event phổ biến: `System`, `Application`, `Setup`, `Security` (cần quyền Admin).
+
+---
+
+## Build file `.exe` (không cần cài Python để chạy)
+
+> PyInstaller không cross-compile — `.exe` Windows phải build **trên Windows**. Có 2 cách:
+
+### Cách A — build ngay trên máy Windows của bạn (đơn giản nhất)
+
+1. Cài [Python 3.8+](https://www.python.org/downloads/) (tick *Add Python to PATH*).
+2. Mở thư mục `footprint`, **double-click `build.bat`** (hoặc chạy trong terminal).
+3. Xong: `footprint\dist\footprint.exe`. Chạy thử: `dist\footprint.exe history`.
+
+### Cách B — để GitHub tự build rồi tải về
+
+Repo có workflow `.github/workflows/footprint-exe.yml`:
+
+1. Trên GitHub → tab **Actions** → chọn **Build footprint.exe** → **Run workflow**.
+2. Khi chạy xong, mở run đó → phần **Artifacts** → tải `footprint-windows-exe`.
+3. Giải nén được `footprint.exe`.
+
+(Workflow cũng tự chạy mỗi khi push thay đổi trong `footprint/`.)
+
+Sau khi có `.exe`, dùng y như lệnh python nhưng thay `python footprint.py` bằng `footprint.exe`:
+
+```bat
+footprint.exe history --domain github.com
+footprint.exe logs --events System --last 24h
+footprint.exe search "hóa đơn" %USERPROFILE%\Downloads
+```
+
+---
 
 ## Chạy được ở đâu
 
-Windows, macOS, Linux. Đường dẫn profile trình duyệt được dò tự động theo từng hệ điều hành.
+- `history`, `search`, `profiles`, và `logs` (quét file) chạy trên **Windows, macOS, Linux**.
+- `logs --events` (Windows Event Log) chỉ chạy trên **Windows** (dùng PowerShell có sẵn).
 
-## Giấy phép / trách nhiệm
+## Trách nhiệm
 
-Dùng cho mục đích hợp pháp trên máy bạn có quyền. Bạn tự chịu trách nhiệm tuân thủ pháp luật và chính sách nơi bạn sử dụng.
+Dùng cho mục đích hợp pháp trên máy bạn có quyền. Bạn tự chịu trách nhiệm tuân thủ pháp luật và chính sách nơi sử dụng.
